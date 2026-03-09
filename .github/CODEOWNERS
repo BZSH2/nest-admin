@@ -1,0 +1,8 @@
+* @your-org/platform-team
+
+/.github/ @your-org/platform-team
+/biome.json @your-org/platform-team
+/commitlint.config.cjs @your-org/platform-team
+/lint-staged.config.mjs @your-org/platform-team
+/package.json @your-org/platform-team
+/pnpm-lock.yaml @your-org/platform-team

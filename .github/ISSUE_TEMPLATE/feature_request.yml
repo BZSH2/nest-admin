@@ -1,0 +1,26 @@
+name: Feature 请求
+description: 提交一个能力增强建议
+title: '[Feature] '
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景与目标
+      description: 说明业务场景和目标
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 方案描述
+      description: 说明期望方案和边界
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 验收标准
+      description: 列出可验证的验收项
+    validations:
+      required: true
