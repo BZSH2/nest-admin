@@ -3,37 +3,83 @@ name: Build and Deploy to Aliyun ACR
 on:
   push:
     branches:
-      - master  # 当推送到 main 分支时触发，也可改为 master
+      - master
+
+concurrency:
+  group: nest-admin-deploy
+  cancel-in-progress: true
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    env:
+      IMAGE_LATEST: ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/${{ secrets.ALIYUN_REPO }}:latest
+      IMAGE_SHA: ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/${{ secrets.ALIYUN_REPO }}:${{ github.sha }}
+      DEPLOY_PATH: /opt/nest-admin
+      APP_PORT: 35000
 
     steps:
-      # 1. 拉取代码
-      - name: Checkout Code
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # 2. 登录阿里云容器镜像服务
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Login to Aliyun ACR
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ secrets.ALIYUN_REGISTRY }}
           username: ${{ secrets.ALIYUN_USERNAME }}
           password: ${{ secrets.ALIYUN_PASSWORD }}
 
-      # 3. 构建并推送镜像
-      - name: Build and Push Docker Image
-        uses: docker/build-push-action@v4
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
         with:
           context: .
-          file: dockerfile
+          file: ./Dockerfile
           push: true
           tags: |
-            ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/${{ secrets.ALIYUN_REPO }}:latest
-            ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/${{ secrets.ALIYUN_REPO }}:${{ github.sha }}
-          # github.sha 会自动使用 commit ID 作为版本号，方便回滚
+            ${{ env.IMAGE_LATEST }}
+            ${{ env.IMAGE_SHA }}
 
-      # 4. (可选) 通知部署完成
-      - name: Deployment Complete
-        run: echo "✅ 镜像已成功推送到阿里云 ACR！"
+      - name: Prepare SSH key
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s' '${{ secrets.DEPLOY_SSH_KEY }}' | base64 -d > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p '${{ secrets.DEPLOY_PORT }}' '${{ secrets.DEPLOY_HOST }}' >> ~/.ssh/known_hosts
+
+      - name: Upload deploy files
+        run: |
+          scp -P '${{ secrets.DEPLOY_PORT }}' docker-compose.prod.yml deploy/deploy.sh '${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ env.DEPLOY_PATH }}/'
+
+      - name: Prepare remote deploy env
+        run: |
+          cat > .deploy.remote.env <<EOF
+          ACR_REGISTRY=${{ secrets.ALIYUN_REGISTRY }}
+          ACR_USERNAME=${{ secrets.ALIYUN_USERNAME }}
+          ACR_PASSWORD=${{ secrets.ALIYUN_PASSWORD }}
+          DEPLOY_IMAGE=${{ env.IMAGE_SHA }}
+          DEPLOY_PATH=${{ env.DEPLOY_PATH }}
+          APP_PORT=${{ env.APP_PORT }}
+          EOF
+          scp -P '${{ secrets.DEPLOY_PORT }}' .deploy.remote.env '${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:${{ env.DEPLOY_PATH }}/.deploy.remote.env'
+          rm -f .deploy.remote.env
+
+      - name: Deploy on server
+        run: |
+          ssh -p '${{ secrets.DEPLOY_PORT }}' '${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}' '
+            set -e
+            chmod +x /opt/nest-admin/deploy.sh
+            set -a
+            . /opt/nest-admin/.deploy.remote.env
+            set +a
+            bash /opt/nest-admin/deploy.sh
+            rm -f /opt/nest-admin/.deploy.remote.env
+          '
+
+      - name: Deployment complete
+        run: echo "✅ Docker image built, pushed, and deployed successfully."
