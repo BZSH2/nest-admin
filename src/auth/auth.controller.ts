@@ -1,6 +1,5 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import type { Request } from 'express';
 import { ApiModule } from '../common/decorators/api-module.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from '../common/guards/jwt-refresh.guard';
@@ -75,7 +74,7 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiModule('ProfileModule')
   @ApiOperation({ summary: '获取个人信息' })
-  getProfile(@Req() req: Request) {
+  getProfile(@Req() req: any) {
     return req.user;
   }
 }
