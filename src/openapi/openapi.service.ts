@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 import type { OpenAPIObject } from '@nestjs/swagger';
 import { API_MODULE_EXTENSION } from '../common/decorators/api-module.decorator';
 import type { PostOpenApiDto } from './dto/post-openapi.dto';
