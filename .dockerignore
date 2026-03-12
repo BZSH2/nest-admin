@@ -1,0 +1,24 @@
+# Dependencies
+node_modules
+
+# Build outputs
+dist
+coverage
+.nyc_output
+
+# VCS and tooling
+.git
+.gitignore
+.husky
+.vscode
+
+# Logs
+*.log
+
+# Env files (do not COPY to image)
+.env
+.env.*
+
+# Temporary
+temp
+tmp

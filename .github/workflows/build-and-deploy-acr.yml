@@ -1,0 +1,39 @@
+name: Build and Deploy to Aliyun ACR
+
+on:
+  push:
+    branches:
+      - mastar  # 当推送到 main 分支时触发，也可改为 master
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. 拉取代码
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 2. 登录阿里云容器镜像服务
+      - name: Login to Aliyun ACR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ secrets.ALIYUN_REGISTRY }}
+          username: ${{ secrets.ALIYUN_USERNAME }}
+          password: ${{ secrets.ALIYUN_PASSWORD }}
+
+      # 3. 构建并推送镜像
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: dockerfile
+          push: true
+          tags: |
+            ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/${{ secrets.ALIYUN_REPO }}:latest
+            ${{ secrets.ALIYUN_REGISTRY }}/${{ secrets.ALIYUN_NAMESPACE }}/${{ secrets.ALIYUN_REPO }}:${{ github.sha }}
+          # github.sha 会自动使用 commit ID 作为版本号，方便回滚
+
+      # 4. (可选) 通知部署完成
+      - name: Deployment Complete
+        run: echo "✅ 镜像已成功推送到阿里云 ACR！"
