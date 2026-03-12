@@ -8,6 +8,7 @@ WORKDIR /app
 
 # 开发环境变量，仅在构建阶段使用
 ENV NODE_ENV=development
+ENV HUSKY=0
 
 # 激活 pnpm，并与项目 packageManager 对齐版本
 RUN corepack enable && corepack prepare pnpm@10.10.0 --activate
