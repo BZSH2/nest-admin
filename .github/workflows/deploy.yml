@@ -3,7 +3,7 @@ name: Build and Deploy to Aliyun ACR
 on:
   push:
     branches:
-      - mastar  # 当推送到 main 分支时触发，也可改为 master
+      - master  # 当推送到 main 分支时触发，也可改为 master
 
 jobs:
   build-and-push:
