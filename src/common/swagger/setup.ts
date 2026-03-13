@@ -16,8 +16,11 @@ export function setupSwagger(app: INestApplication): OpenAPIObject {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup(swaggerPath, app, document);
 
+  const host = configService.get<string>('HOST') || 'localhost';
+  const protocol = configService.get<string>('PROTOCOL') || 'http';
+  const port = configService.get<number>('PORT') || 3000;
   Logger.log(
-    `Swagger documentation is available at: http://localhost:${configService.get('PORT') || 3000}/${swaggerPath}`,
+    `Swagger documentation is available at: ${protocol}://${host}:${port}/${swaggerPath}`,
     'Swagger',
   );
 

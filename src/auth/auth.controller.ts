@@ -1,9 +1,10 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ApiModule } from '../common/decorators/api-module.decorator';
+import { Public } from '../common/decorators/public.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from '../common/guards/jwt-refresh.guard';
-import { AuthService } from './auth.service';
+import type { AuthService } from './auth.service';
 import type { ChangePasswordDto } from './dto/change-password.dto';
 import type { LoginDto } from './dto/login.dto';
 import type { RegisterDto } from './dto/register.dto';
@@ -13,6 +14,7 @@ import type { RegisterDto } from './dto/register.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('register')
   @ApiModule('LoginModule')
   @ApiOperation({ summary: '用户注册' })
@@ -22,6 +24,7 @@ export class AuthController {
     return this.authService.register(registerDto);
   }
 
+  @Public()
   @Post('login')
   @ApiModule('LoginModule')
   @ApiOperation({ summary: '用户登录' })
