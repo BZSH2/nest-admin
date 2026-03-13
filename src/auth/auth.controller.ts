@@ -4,7 +4,7 @@ import { ApiModule } from '../common/decorators/api-module.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from '../common/guards/jwt-refresh.guard';
-import type { AuthService } from './auth.service';
+import { AuthService } from './auth.service';
 import type { ChangePasswordDto } from './dto/change-password.dto';
 import type { LoginDto } from './dto/login.dto';
 import type { RegisterDto } from './dto/register.dto';

@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import type { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import type { CreateUserDto } from './dto/create-user.dto';
+import type { QueryUserDto } from './dto/query-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
@@ -18,6 +19,31 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
+  async findAll(query: QueryUserDto) {
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 10;
+    const keyword = query.keyword?.trim();
+
+    const where = keyword
+      ? [{ phoneNumber: Like(`%${keyword}%`) }, { nickname: Like(`%${keyword}%`) }]
+      : undefined;
+
+    const [items, total] = await this.usersRepository.findAndCount({
+      where,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      order: { createdAt: 'DESC' },
+      select: ['id', 'phoneNumber', 'nickname', 'avatar', 'createdAt', 'updatedAt'],
+    });
+
+    return {
+      items,
+      total,
+      page,
+      pageSize,
+    };
+  }
+
   findOneByPhoneNumber(phoneNumber: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { phoneNumber },
@@ -31,6 +57,11 @@ export class UsersService {
 
   update(id: string, updateUserDto: UpdateUserDto) {
     return this.usersRepository.update(id, updateUserDto);
+  }
+
+  async delete(id: string) {
+    await this.usersRepository.softDelete(id);
+    return { id };
   }
 
   async setCurrentRefreshToken(refreshToken: string, userId: string) {

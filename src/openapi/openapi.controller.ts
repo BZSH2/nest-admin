@@ -3,7 +3,7 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiModule } from '../common/decorators/api-module.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import type { PostOpenApiDto } from './dto/post-openapi.dto';
-import type { OpenApiService } from './openapi.service';
+import { OpenApiService } from './openapi.service';
 
 @ApiTags('OpenAPI')
 @Controller()

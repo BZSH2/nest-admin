@@ -1,9 +1,20 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import type { CreateUserDto } from './dto/create-user.dto';
+import { QueryUserDto } from './dto/query-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
-import type { UsersService } from './users.service';
+import { UsersService } from './users.service';
 
 @ApiTags('Users')
 @Controller('users')
@@ -11,6 +22,12 @@ import type { UsersService } from './users.service';
 @ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
+
+  @Get()
+  @ApiOperation({ summary: '分页查询用户列表' })
+  findAll(@Query() query: QueryUserDto) {
+    return this.usersService.findAll(query);
+  }
 
   @Post()
   @ApiOperation({ summary: '创建用户 (管理员)' })
@@ -28,5 +45,11 @@ export class UsersController {
   @ApiOperation({ summary: '更新用户信息' })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '删除用户（软删除）' })
+  remove(@Param('id') id: string) {
+    return this.usersService.delete(id);
   }
 }
