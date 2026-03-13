@@ -58,7 +58,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
               (raw as any)?.message || (raw as any)?.error || fallbackMap[status] || '请求失败',
             );
 
-    this.logger.error(`Http Status: ${status} Error Message: ${JSON.stringify(resolved)}`);
+    this.logger.error(
+      `Http Status: ${status} Path: ${request.url} Error Message: ${JSON.stringify(resolved)}`,
+    );
 
     response.status(status).json({
       code: status,
