@@ -21,12 +21,23 @@ describe('AppController', () => {
   });
 
   describe('health', () => {
-    it('should return a healthy status payload', () => {
+    it('should return a liveness payload', () => {
       expect(appController.health()).toEqual(
         expect.objectContaining({
           status: 'ok',
           timestamp: expect.any(String),
           uptime: expect.any(Number),
+        }),
+      );
+    });
+
+    it('should return a readiness payload when no datasource is injected', async () => {
+      await expect(appController.ready()).resolves.toEqual(
+        expect.objectContaining({
+          status: 'ok',
+          checks: {
+            database: 'skipped',
+          },
         }),
       );
     });

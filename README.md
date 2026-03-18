@@ -19,13 +19,19 @@ nvm use
 # 安装依赖
 pnpm install
 
+# 复制环境变量模板
+cp .env.example .env
+
 # 启动开发服务
 pnpm run start:dev
 ```
 
 默认启动后可访问：
 - API 文档：`/docs`
-- 健康检查：`/health`、`/health/live`、`/health/ready`
+- 存活检查：`/health`、`/health/live`
+- 就绪检查：`/health/ready`
+
+> `ConfigModule` 已启用启动前环境变量校验。缺少数据库/JWT 等关键配置时，应用会直接启动失败，而不是带着坏配置运行。
 
 ## 🏗️ 项目规范
 
@@ -61,11 +67,18 @@ pnpm run test:cov
 pnpm test:e2e --runInBand
 ```
 
+当前测试覆盖包括：
+- App 基础接口
+- 健康检查接口
+- 环境变量校验
+- 用户密码哈希与 refresh token 校验逻辑
+
 ## 🚀 持续集成与部署
 
 - `CI` 工作流会在 push / pull request 到 `master` 时执行静态检查、构建、单测与 e2e。
 - `deploy` 工作流仅在 push 到 `master` 或手动触发时执行，避免 PR 阶段误部署。
-- 生产环境容器健康检查与部署脚本统一使用 `/health/live`，不再依赖 Swagger 页面作为存活判断。
+- 生产环境容器健康检查与部署脚本统一使用 `/health/ready`，确保数据库可达后再判定服务就绪。
+- `.env.example` 默认使用 `HOST=0.0.0.0`，更适合 Docker / 服务器部署场景。
 
 ## 📄 文档
 - [安全策略](./SECURITY.md)

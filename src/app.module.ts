@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { AuthOrPublicGuard } from './common/guards/auth-or-public.guard';
 import databaseConfig from './config/database.config';
+import { validateEnv } from './config/env.validation';
 import { OpenApiModule } from './openapi/openapi.module';
 import { UsersModule } from './users/users.module';
 
@@ -15,6 +16,7 @@ import { UsersModule } from './users/users.module';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env'],
+      validate: validateEnv,
       load: [databaseConfig],
     }),
     TypeOrmModule.forRootAsync({

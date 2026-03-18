@@ -85,6 +85,9 @@ describe('AppController (e2e)', () => {
             status: 'ok',
             timestamp: expect.any(String),
             uptime: expect.any(Number),
+            checks: {
+              database: 'skipped',
+            },
           }),
         );
       });

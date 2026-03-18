@@ -42,12 +42,13 @@ async function bootstrap() {
   const document = setupSwagger(app);
   OpenApiService.setDocument(document);
 
-  const port = configService.get<number>('PORT') || 3000;
-  const host = configService.get<string>('HOST') || 'localhost';
+  const port = configService.get<number>('PORT') || 35000;
+  const host = configService.get<string>('HOST') || '0.0.0.0';
   const protocol = configService.get<string>('PROTOCOL') || 'http';
   const swaggerPath = configService.get<string>('SWAGGER_PATH') || 'docs';
-  await app.listen(port);
-  const baseUrl = `${protocol}://${host}:${port}`;
+  await app.listen(port, host);
+  const displayHost = host === '0.0.0.0' ? '127.0.0.1' : host;
+  const baseUrl = `${protocol}://${displayHost}:${port}`;
   Logger.log(`Application is running on: ${baseUrl}/${prefix}`, 'Bootstrap');
   Logger.log(`Swagger documentation: ${baseUrl}/${swaggerPath}`, 'Bootstrap');
 }

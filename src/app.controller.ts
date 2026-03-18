@@ -15,18 +15,18 @@ export class AppController {
   @Public()
   @Get('health')
   health() {
-    return this.appService.getHealth();
+    return this.appService.getLiveness();
   }
 
   @Public()
   @Get('health/live')
   live() {
-    return this.appService.getHealth();
+    return this.appService.getLiveness();
   }
 
   @Public()
   @Get('health/ready')
   ready() {
-    return this.appService.getHealth();
+    return this.appService.getReadiness();
   }
 }
