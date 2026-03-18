@@ -7,6 +7,8 @@ import type { QueryUserDto } from './dto/query-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 
+export type SafeUser = Omit<User, 'password' | 'currentHashedRefreshToken'>;
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -14,9 +16,10 @@ export class UsersService {
     private usersRepository: Repository<User>,
   ) {}
 
-  create(createUserDto: CreateUserDto): Promise<User> {
-    const user = this.usersRepository.create(createUserDto);
-    return this.usersRepository.save(user);
+  async create(createUserDto: CreateUserDto): Promise<SafeUser> {
+    const user = this.usersRepository.create(await this.withHashedPassword(createUserDto));
+    const savedUser = await this.usersRepository.save(user);
+    return this.sanitizeUser(savedUser);
   }
 
   async findAll(query: QueryUserDto) {
@@ -55,8 +58,9 @@ export class UsersService {
     return this.usersRepository.findOneBy({ id });
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
-    return this.usersRepository.update(id, updateUserDto);
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    await this.usersRepository.update(id, await this.withHashedPassword(updateUserDto));
+    return this.findOneById(id);
   }
 
   async delete(id: string) {
@@ -78,10 +82,12 @@ export class UsersService {
   }
 
   async getUserIfRefreshTokenMatches(refreshToken: string, userId: string) {
-    const user = await this.findOneById(userId);
+    const user = await this.usersRepository.findOne({
+      where: { id: userId },
+      select: ['id', 'phoneNumber', 'nickname', 'avatar', 'currentHashedRefreshToken'],
+    });
 
-    // 如果该用户已登出或 refresh token 为空，则返回 null
-    if (!user || !user.currentHashedRefreshToken) {
+    if (!user?.currentHashedRefreshToken) {
       return null;
     }
 
@@ -93,6 +99,22 @@ export class UsersService {
     if (isRefreshTokenMatching) {
       return user;
     }
-    return null; // Token 不匹配
+    return null;
+  }
+
+  private async withHashedPassword<T extends { password?: string }>(payload: T): Promise<T> {
+    if (!payload.password) {
+      return payload;
+    }
+
+    return {
+      ...payload,
+      password: await bcrypt.hash(payload.password, 10),
+    };
+  }
+
+  private sanitizeUser(user: User): SafeUser {
+    const { password, currentHashedRefreshToken, ...safeUser } = user;
+    return safeUser;
   }
 }
