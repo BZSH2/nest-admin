@@ -1,7 +1,9 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { UserRole } from '../auth/enums/user-role.enum';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 
@@ -18,6 +20,9 @@ type MockRepository = {
 describe('UsersService', () => {
   let service: UsersService;
   let usersRepository: MockRepository;
+  const configService = new ConfigService({
+    ADMIN_PHONE_NUMBERS: '13800138000',
+  });
 
   beforeEach(async () => {
     usersRepository = {
@@ -37,17 +42,22 @@ describe('UsersService', () => {
           provide: getRepositoryToken(User),
           useValue: usersRepository,
         },
+        {
+          provide: ConfigService,
+          useValue: configService,
+        },
       ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
   });
 
-  it('hashes password on create and removes sensitive fields from the response', async () => {
+  it('hashes password on create, assigns default role, and removes sensitive fields from response', async () => {
     usersRepository.findOne.mockResolvedValue(null);
     usersRepository.save.mockImplementation(async (input) => ({
       id: 'user-1',
       phoneNumber: input.phoneNumber,
+      role: input.role,
       nickname: input.nickname,
       password: input.password,
       currentHashedRefreshToken: null,
@@ -60,13 +70,18 @@ describe('UsersService', () => {
     });
 
     expect(usersRepository.create).toHaveBeenCalledTimes(1);
-    const savedPayload = usersRepository.create.mock.calls[0][0] as { password: string };
+    const savedPayload = usersRepository.create.mock.calls[0][0] as {
+      password: string;
+      role: UserRole;
+    };
     expect(savedPayload.password).not.toBe('Password123!');
+    expect(savedPayload.role).toBe(UserRole.ADMIN);
     await expect(bcrypt.compare('Password123!', savedPayload.password)).resolves.toBe(true);
 
     expect(result).toEqual({
       id: 'user-1',
       phoneNumber: '13800138000',
+      role: UserRole.ADMIN,
       nickname: '测试用户',
     });
     expect(result).not.toHaveProperty('password');
@@ -78,6 +93,7 @@ describe('UsersService', () => {
       id: 'existing-user',
       phoneNumber: '13800138000',
       password: 'hashed',
+      role: UserRole.USER,
     });
 
     await expect(
@@ -99,11 +115,13 @@ describe('UsersService', () => {
       .mockResolvedValueOnce({
         id: 'user-1',
         phoneNumber: '13800138000',
+        role: UserRole.USER,
         nickname: '原用户',
       })
       .mockResolvedValueOnce({
         id: 'user-1',
         phoneNumber: '13800138000',
+        role: UserRole.USER,
         nickname: '更新后的用户',
       });
     usersRepository.update.mockResolvedValue(undefined);
@@ -119,20 +137,48 @@ describe('UsersService', () => {
     expect(result).toEqual({
       id: 'user-1',
       phoneNumber: '13800138000',
+      role: UserRole.USER,
       nickname: '更新后的用户',
     });
+  });
+
+  it('assigns role explicitly', async () => {
+    usersRepository.findOneBy
+      .mockResolvedValueOnce({
+        id: 'user-1',
+        phoneNumber: '13800138000',
+        role: UserRole.USER,
+        nickname: '原用户',
+      })
+      .mockResolvedValueOnce({
+        id: 'user-1',
+        phoneNumber: '13800138000',
+        role: UserRole.ADMIN,
+        nickname: '原用户',
+      });
+    usersRepository.update.mockResolvedValue(undefined);
+
+    await expect(service.assignRole('user-1', UserRole.ADMIN)).resolves.toEqual(
+      expect.objectContaining({
+        id: 'user-1',
+        role: UserRole.ADMIN,
+      }),
+    );
+    expect(usersRepository.update).toHaveBeenCalledWith('user-1', { role: UserRole.ADMIN });
   });
 
   it('throws conflict when updating phone number to another existing user', async () => {
     usersRepository.findOneBy.mockResolvedValue({
       id: 'user-1',
       phoneNumber: '13800138000',
+      role: UserRole.USER,
       nickname: '原用户',
     });
     usersRepository.findOne.mockResolvedValue({
       id: 'user-2',
       phoneNumber: '13900139000',
       password: 'hashed',
+      role: UserRole.USER,
     });
 
     await expect(
@@ -153,6 +199,7 @@ describe('UsersService', () => {
     usersRepository.findOne.mockResolvedValue({
       id: 'user-1',
       phoneNumber: '13800138000',
+      role: UserRole.ADMIN,
       nickname: '测试用户',
       avatar: null,
       currentHashedRefreshToken,
@@ -163,13 +210,14 @@ describe('UsersService', () => {
     expect(usersRepository.findOne).toHaveBeenCalledWith(
       expect.objectContaining({
         where: { id: 'user-1' },
-        select: expect.arrayContaining(['currentHashedRefreshToken']),
+        select: expect.arrayContaining(['currentHashedRefreshToken', 'role']),
       }),
     );
     expect(result).toEqual(
       expect.objectContaining({
         id: 'user-1',
         phoneNumber: '13800138000',
+        role: UserRole.ADMIN,
       }),
     );
   });

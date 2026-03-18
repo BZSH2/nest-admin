@@ -36,9 +36,10 @@ pnpm run start:dev
 ## 🔐 权限控制
 
 当前项目已接入**轻量 RBAC 骨架**：
-- 通过 `ADMIN_PHONE_NUMBERS` 环境变量配置管理员手机号白名单
+- 通过 `ADMIN_PHONE_NUMBERS` 环境变量配置初始化管理员手机号白名单
 - `Users` 管理接口默认要求管理员权限
-- 登录后用户角色会在鉴权阶段动态解析为 `admin` 或 `user`
+- 角色已支持持久化到 `users.role`
+- 登录后用户角色会优先读取数据库角色；历史用户若角色为空，可回退到管理员白名单进行兼容识别
 
 示例：
 
@@ -46,7 +47,19 @@ pnpm run start:dev
 ADMIN_PHONE_NUMBERS=13800138000,13900139000
 ```
 
-> 这是一个**不改数据库结构**的轻量版本，适合当前阶段快速保护后台管理接口。后续如果要做完整 RBAC，可再演进为数据库角色/权限模型。
+## 👥 角色管理接口
+
+当前已补齐基础角色管理接口：
+- `GET /roles/options`：获取可分配角色列表
+- `GET /roles/users/:userId`：获取指定用户当前角色信息
+- `PATCH /roles/users/:userId`：更新指定用户角色
+
+说明：
+- 以上接口默认要求 **admin** 权限
+- 角色当前采用枚举值：`admin` / `user`
+- 新注册用户会默认写入 `user`，初始化管理员手机号可根据白名单自动写入 `admin`
+
+> 这是一版适合当前项目阶段的轻量实现：先把角色识别、角色更新、管理权限入口打通，再决定是否继续演进到独立角色表 / 权限点表。
 
 ## 🔁 认证接口约定
 
@@ -101,6 +114,7 @@ pnpm test:e2e --runInBand
 - 用户密码哈希与 refresh token 校验逻辑
 - Controller 请求类型与权限守卫逻辑
 - Auth service 的注册 / 登出 / profile 闭环
+- 角色解析、角色管理 controller/service
 
 ## 🚀 持续集成与部署
 

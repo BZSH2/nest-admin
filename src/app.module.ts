@@ -10,6 +10,7 @@ import { RolesGuard } from './common/guards/roles.guard';
 import databaseConfig from './config/database.config';
 import { validateEnv } from './config/env.validation';
 import { OpenApiModule } from './openapi/openapi.module';
+import { RolesModule } from './roles/roles.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -30,6 +31,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     AuthModule,
     OpenApiModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [

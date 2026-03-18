@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserRole } from '../../auth/enums/user-role.enum';
 
 @Entity('users')
 export class User {
@@ -17,6 +18,14 @@ export class User {
 
   @Column({ select: false, comment: '加密密码' })
   password: string;
+
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    nullable: true,
+    comment: '用户角色',
+  })
+  role: UserRole | null;
 
   @Column({ length: 50, nullable: true, comment: '昵称' })
   nickname: string;

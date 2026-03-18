@@ -84,7 +84,7 @@ export class AuthService {
     return { message: '密码修改成功，请重新登录' };
   }
 
-  getProfile(user: SafeUser & { role?: UserRole }): AuthProfileDto {
+  getProfile(user: SafeUser & { role?: UserRole | null }): AuthProfileDto {
     return this.toAuthProfile(user);
   }
 
@@ -107,10 +107,10 @@ export class AuthService {
     };
   }
 
-  private toAuthProfile(user: SafeUser & { role?: UserRole }): AuthProfileDto {
+  private toAuthProfile(user: SafeUser & { role?: UserRole | null }): AuthProfileDto {
     return {
       ...user,
-      role: user.role ?? resolveUserRole(user.phoneNumber, this.configService),
+      role: resolveUserRole(user.phoneNumber, this.configService, user.role),
     };
   }
 }

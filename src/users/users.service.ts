@@ -1,7 +1,10 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Like, Repository } from 'typeorm';
+import { UserRole } from '../auth/enums/user-role.enum';
+import { resolveUserRole } from '../auth/utils/resolve-user-role';
 import type { CreateUserDto } from './dto/create-user.dto';
 import type { QueryUserDto } from './dto/query-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
@@ -14,12 +17,18 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private readonly configService: ConfigService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<SafeUser> {
     await this.ensurePhoneNumberAvailable(createUserDto.phoneNumber);
 
-    const user = this.usersRepository.create(await this.withHashedPassword(createUserDto));
+    const user = this.usersRepository.create(
+      await this.withHashedPassword({
+        ...createUserDto,
+        role: resolveUserRole(createUserDto.phoneNumber, this.configService),
+      }),
+    );
     const savedUser = await this.usersRepository.save(user);
     return this.sanitizeUser(savedUser);
   }
@@ -38,7 +47,7 @@ export class UsersService {
       skip: (page - 1) * pageSize,
       take: pageSize,
       order: { createdAt: 'DESC' },
-      select: ['id', 'phoneNumber', 'nickname', 'avatar', 'createdAt', 'updatedAt'],
+      select: ['id', 'phoneNumber', 'role', 'nickname', 'avatar', 'createdAt', 'updatedAt'],
     });
 
     return {
@@ -52,7 +61,15 @@ export class UsersService {
   findOneByPhoneNumber(phoneNumber: string): Promise<User | null> {
     return this.usersRepository.findOne({
       where: { phoneNumber },
-      select: ['id', 'phoneNumber', 'password', 'nickname', 'avatar', 'currentHashedRefreshToken'],
+      select: [
+        'id',
+        'phoneNumber',
+        'password',
+        'role',
+        'nickname',
+        'avatar',
+        'currentHashedRefreshToken',
+      ],
     });
   }
 
@@ -76,6 +93,12 @@ export class UsersService {
     }
 
     await this.usersRepository.update(id, await this.withHashedPassword(updateUserDto));
+    return this.findOneOrFail(id);
+  }
+
+  async assignRole(id: string, role: UserRole): Promise<SafeUser> {
+    await this.findOneOrFail(id);
+    await this.usersRepository.update(id, { role });
     return this.findOneOrFail(id);
   }
 
@@ -105,7 +128,7 @@ export class UsersService {
   async getUserIfRefreshTokenMatches(refreshToken: string, userId: string) {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
-      select: ['id', 'phoneNumber', 'nickname', 'avatar', 'currentHashedRefreshToken'],
+      select: ['id', 'phoneNumber', 'role', 'nickname', 'avatar', 'currentHashedRefreshToken'],
     });
 
     if (!user?.currentHashedRefreshToken) {

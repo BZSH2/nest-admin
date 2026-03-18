@@ -31,7 +31,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     return {
       ...user,
-      role: resolveUserRole(user.phoneNumber, this.configService),
+      role: resolveUserRole(user.phoneNumber, this.configService, user.role),
     };
   }
 }
