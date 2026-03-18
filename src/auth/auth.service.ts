@@ -2,10 +2,15 @@ import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { UsersService } from '../users/users.service';
+import { OperationMessageDto } from '../common/dto/operation-message.dto';
+import { type SafeUser, UsersService } from '../users/users.service';
+import type { AuthProfileDto } from './dto/auth-profile.dto';
+import type { AuthTokensDto } from './dto/auth-tokens.dto';
 import type { ChangePasswordDto } from './dto/change-password.dto';
 import type { LoginDto } from './dto/login.dto';
 import type { RegisterDto } from './dto/register.dto';
+import { UserRole } from './enums/user-role.enum';
+import { resolveUserRole } from './utils/resolve-user-role';
 
 @Injectable()
 export class AuthService {
@@ -15,11 +20,12 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  register(registerDto: RegisterDto) {
-    return this.usersService.create(registerDto);
+  async register(registerDto: RegisterDto): Promise<AuthProfileDto> {
+    const user = await this.usersService.create(registerDto);
+    return this.toAuthProfile(user);
   }
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto): Promise<AuthTokensDto> {
     const user = await this.usersService.findOneByPhoneNumber(loginDto.phoneNumber);
 
     if (!user || !(await bcrypt.compare(loginDto.password, user.password))) {
@@ -32,11 +38,15 @@ export class AuthService {
     return tokens;
   }
 
-  logout(userId: string) {
-    return this.usersService.removeRefreshToken(userId);
+  async logout(userId: string): Promise<OperationMessageDto> {
+    await this.usersService.removeRefreshToken(userId);
+
+    return {
+      message: '退出成功',
+    };
   }
 
-  async refreshTokens(userId: string, refreshToken: string) {
+  async refreshTokens(userId: string, refreshToken: string): Promise<AuthTokensDto> {
     const user = await this.usersService.getUserIfRefreshTokenMatches(refreshToken, userId);
     if (!user) {
       throw new UnauthorizedException('Access Denied');
@@ -47,7 +57,10 @@ export class AuthService {
     return tokens;
   }
 
-  async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<OperationMessageDto> {
     const user = await this.usersService.findOneById(userId);
     if (!user) {
       throw new UnauthorizedException('用户不存在');
@@ -71,7 +84,11 @@ export class AuthService {
     return { message: '密码修改成功，请重新登录' };
   }
 
-  async getTokens(userId: string, phoneNumber: string) {
+  getProfile(user: SafeUser & { role?: UserRole }): AuthProfileDto {
+    return this.toAuthProfile(user);
+  }
+
+  async getTokens(userId: string, phoneNumber: string): Promise<AuthTokensDto> {
     const payload = { sub: userId, phoneNumber };
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
@@ -87,6 +104,13 @@ export class AuthService {
     return {
       accessToken,
       refreshToken,
+    };
+  }
+
+  private toAuthProfile(user: SafeUser & { role?: UserRole }): AuthProfileDto {
+    return {
+      ...user,
+      role: user.role ?? resolveUserRole(user.phoneNumber, this.configService),
     };
   }
 }

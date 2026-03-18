@@ -48,6 +48,18 @@ ADMIN_PHONE_NUMBERS=13800138000,13900139000
 
 > 这是一个**不改数据库结构**的轻量版本，适合当前阶段快速保护后台管理接口。后续如果要做完整 RBAC，可再演进为数据库角色/权限模型。
 
+## 🔁 认证接口约定
+
+当前 Auth 接口已补齐更稳定的返回契约：
+- `POST /auth/register` → 返回当前注册用户资料（含 role）
+- `POST /auth/login` → 返回 `accessToken` / `refreshToken`
+- `POST /auth/refresh` → 返回新 token 对
+- `POST /auth/logout` → 返回明确消息，不再暴露 TypeORM `UpdateResult`
+- `GET /auth/profile` → 返回当前登录用户资料（含 role）
+- `POST /auth/change-password` → 返回明确消息
+
+Swagger 也已同步补齐这些响应模型，前后端联调时可以直接看文档约定字段。
+
 ## 🏗️ 项目规范
 
 ### 代码风格
@@ -88,6 +100,7 @@ pnpm test:e2e --runInBand
 - 环境变量校验
 - 用户密码哈希与 refresh token 校验逻辑
 - Controller 请求类型与权限守卫逻辑
+- Auth service 的注册 / 登出 / profile 闭环
 
 ## 🚀 持续集成与部署
 

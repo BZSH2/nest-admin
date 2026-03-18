@@ -14,6 +14,7 @@ describe('AuthController', () => {
     logout: jest.fn(),
     refreshTokens: jest.fn(),
     changePassword: jest.fn(),
+    getProfile: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -78,7 +79,7 @@ describe('AuthController', () => {
     expect(authService.changePassword).toHaveBeenCalledWith('user-1', dto);
   });
 
-  it('returns current profile from request', () => {
+  it('delegates current profile mapping to auth service', () => {
     const req = {
       user: {
         id: 'user-1',
@@ -87,7 +88,9 @@ describe('AuthController', () => {
         role: 'user' as const,
       },
     } as AuthenticatedRequest;
+    authService.getProfile.mockReturnValue(req.user);
 
     expect(controller.getProfile(req)).toEqual(req.user);
+    expect(authService.getProfile).toHaveBeenCalledWith(req.user);
   });
 });
