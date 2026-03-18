@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { AuthOrPublicGuard } from './common/guards/auth-or-public.guard';
+import { RolesGuard } from './common/guards/roles.guard';
 import databaseConfig from './config/database.config';
 import { validateEnv } from './config/env.validation';
 import { OpenApiModule } from './openapi/openapi.module';
@@ -31,6 +32,10 @@ import { UsersModule } from './users/users.module';
     OpenApiModule,
   ],
   controllers: [AppController],
-  providers: [AppService, { provide: APP_GUARD, useClass: AuthOrPublicGuard }],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: AuthOrPublicGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
+  ],
 })
 export class AppModule {}

@@ -37,6 +37,7 @@ describe('AuthController', () => {
       user: {
         id: 'user-1',
         phoneNumber: '13800138000',
+        role: 'user' as const,
       },
     } as AuthenticatedRequest;
 
@@ -64,6 +65,7 @@ describe('AuthController', () => {
       user: {
         id: 'user-1',
         phoneNumber: '13800138000',
+        role: 'user' as const,
       },
     } as AuthenticatedRequest;
     const dto = {
@@ -82,6 +84,7 @@ describe('AuthController', () => {
         id: 'user-1',
         phoneNumber: '13800138000',
         nickname: '测试用户',
+        role: 'user' as const,
       },
     } as AuthenticatedRequest;
 

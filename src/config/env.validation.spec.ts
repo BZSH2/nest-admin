@@ -8,6 +8,7 @@ describe('validateEnv', () => {
     SWAGGER_PATH: 'docs',
     HOST: '0.0.0.0',
     PROTOCOL: 'http',
+    ADMIN_PHONE_NUMBERS: '13800138000,13900139000',
     DB_HOST: '127.0.0.1',
     DB_PORT: '3306',
     DB_USERNAME: 'root',
@@ -27,6 +28,7 @@ describe('validateEnv', () => {
         DB_PORT: 3306,
         DB_SYNCHRONIZE: false,
         HOST: '0.0.0.0',
+        ADMIN_PHONE_NUMBERS: '13800138000,13900139000',
       }),
     );
   });

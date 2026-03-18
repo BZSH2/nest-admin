@@ -12,6 +12,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { UserRole } from '../auth/enums/user-role.enum';
+import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
@@ -22,11 +24,13 @@ import { UsersService } from './users.service';
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
+@Roles(UserRole.ADMIN)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
   @ApiOperation({ summary: '分页查询用户列表' })
+  @ApiResponse({ status: 403, description: '需要管理员权限' })
   findAll(@Query() query: QueryUserDto) {
     return this.usersService.findAll(query);
   }
@@ -34,6 +38,7 @@ export class UsersController {
   @Post()
   @ApiOperation({ summary: '创建用户 (管理员)' })
   @ApiResponse({ status: 201, description: '创建成功' })
+  @ApiResponse({ status: 403, description: '需要管理员权限' })
   @ApiResponse({ status: 409, description: '手机号已存在' })
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
@@ -42,6 +47,7 @@ export class UsersController {
   @Get(':id')
   @ApiOperation({ summary: '根据ID查询用户' })
   @ApiResponse({ status: 200, description: '查询成功' })
+  @ApiResponse({ status: 403, description: '需要管理员权限' })
   @ApiResponse({ status: 404, description: '用户不存在' })
   findOne(@Param('id') id: string) {
     return this.usersService.findOneOrFail(id);
@@ -50,6 +56,7 @@ export class UsersController {
   @Patch(':id')
   @ApiOperation({ summary: '更新用户信息' })
   @ApiResponse({ status: 200, description: '更新成功' })
+  @ApiResponse({ status: 403, description: '需要管理员权限' })
   @ApiResponse({ status: 404, description: '用户不存在' })
   @ApiResponse({ status: 409, description: '手机号已存在' })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
@@ -60,6 +67,7 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: '删除用户（软删除）' })
   @ApiResponse({ status: 200, description: '删除成功' })
+  @ApiResponse({ status: 403, description: '需要管理员权限' })
   @ApiResponse({ status: 404, description: '用户不存在' })
   remove(@Param('id') id: string) {
     return this.usersService.delete(id);

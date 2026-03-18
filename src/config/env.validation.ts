@@ -56,6 +56,8 @@ export function validateEnv(config: EnvRecord) {
     SWAGGER_PATH: typeof config.SWAGGER_PATH === 'string' ? config.SWAGGER_PATH : 'docs',
     HOST: typeof config.HOST === 'string' ? config.HOST : '0.0.0.0',
     PROTOCOL: typeof config.PROTOCOL === 'string' ? config.PROTOCOL : 'http',
+    ADMIN_PHONE_NUMBERS:
+      typeof config.ADMIN_PHONE_NUMBERS === 'string' ? config.ADMIN_PHONE_NUMBERS : '',
     DB_HOST: ensureString(config, 'DB_HOST'),
     DB_PORT: ensurePort(config, 'DB_PORT', 3306),
     DB_USERNAME: ensureString(config, 'DB_USERNAME'),

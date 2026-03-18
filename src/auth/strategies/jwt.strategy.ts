@@ -3,12 +3,18 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersService } from '../../users/users.service';
+import { resolveUserRole } from '../utils/resolve-user-role';
+
+interface JwtPayload {
+  sub: string;
+  phoneNumber: string;
+}
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
-    configService: ConfigService,
-    private usersService: UsersService,
+    private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -17,12 +23,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
-    // payload.sub 是 userId
+  async validate(payload: JwtPayload) {
     const user = await this.usersService.findOneById(payload.sub);
     if (!user) {
       throw new UnauthorizedException('用户不存在');
     }
-    return user;
+
+    return {
+      ...user,
+      role: resolveUserRole(user.phoneNumber, this.configService),
+    };
   }
 }
