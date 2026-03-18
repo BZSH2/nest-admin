@@ -5,6 +5,8 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      HOST: 0.0.0.0
     ports:
       - "35000:35000"
     extra_hosts:
