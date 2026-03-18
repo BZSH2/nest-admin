@@ -15,12 +15,7 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async register(registerDto: RegisterDto) {
-    const existingUser = await this.usersService.findOneByPhoneNumber(registerDto.phoneNumber);
-    if (existingUser) {
-      throw new BadRequestException('该手机号已注册');
-    }
-
+  register(registerDto: RegisterDto) {
     return this.usersService.create(registerDto);
   }
 

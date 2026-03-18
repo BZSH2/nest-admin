@@ -1,3 +1,4 @@
+import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -43,6 +44,7 @@ describe('UsersService', () => {
   });
 
   it('hashes password on create and removes sensitive fields from the response', async () => {
+    usersRepository.findOne.mockResolvedValue(null);
     usersRepository.save.mockImplementation(async (input) => ({
       id: 'user-1',
       phoneNumber: input.phoneNumber,
@@ -71,13 +73,40 @@ describe('UsersService', () => {
     expect(result).not.toHaveProperty('currentHashedRefreshToken');
   });
 
-  it('hashes password on update before persisting', async () => {
-    usersRepository.update.mockResolvedValue(undefined);
-    usersRepository.findOneBy.mockResolvedValue({
-      id: 'user-1',
+  it('throws conflict when creating a duplicated phone number', async () => {
+    usersRepository.findOne.mockResolvedValue({
+      id: 'existing-user',
       phoneNumber: '13800138000',
-      nickname: '更新后的用户',
+      password: 'hashed',
     });
+
+    await expect(
+      service.create({
+        phoneNumber: '13800138000',
+        password: 'Password123!',
+      }),
+    ).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it('findOneOrFail throws when user does not exist', async () => {
+    usersRepository.findOneBy.mockResolvedValue(null);
+
+    await expect(service.findOneOrFail('missing-user')).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('hashes password on update before persisting', async () => {
+    usersRepository.findOneBy
+      .mockResolvedValueOnce({
+        id: 'user-1',
+        phoneNumber: '13800138000',
+        nickname: '原用户',
+      })
+      .mockResolvedValueOnce({
+        id: 'user-1',
+        phoneNumber: '13800138000',
+        nickname: '更新后的用户',
+      });
+    usersRepository.update.mockResolvedValue(undefined);
 
     const result = await service.update('user-1', {
       password: 'NewPassword123!',
@@ -92,6 +121,31 @@ describe('UsersService', () => {
       phoneNumber: '13800138000',
       nickname: '更新后的用户',
     });
+  });
+
+  it('throws conflict when updating phone number to another existing user', async () => {
+    usersRepository.findOneBy.mockResolvedValue({
+      id: 'user-1',
+      phoneNumber: '13800138000',
+      nickname: '原用户',
+    });
+    usersRepository.findOne.mockResolvedValue({
+      id: 'user-2',
+      phoneNumber: '13900139000',
+      password: 'hashed',
+    });
+
+    await expect(
+      service.update('user-1', {
+        phoneNumber: '13900139000',
+      }),
+    ).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it('throws when deleting a missing user', async () => {
+    usersRepository.softDelete.mockResolvedValue({ affected: 0 });
+
+    await expect(service.delete('missing-user')).rejects.toBeInstanceOf(NotFoundException);
   });
 
   it('loads the hashed refresh token explicitly when validating refresh tokens', async () => {

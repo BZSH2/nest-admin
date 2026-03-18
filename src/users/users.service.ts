@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Like, Repository } from 'typeorm';
@@ -17,6 +17,8 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<SafeUser> {
+    await this.ensurePhoneNumberAvailable(createUserDto.phoneNumber);
+
     const user = this.usersRepository.create(await this.withHashedPassword(createUserDto));
     const savedUser = await this.usersRepository.save(user);
     return this.sanitizeUser(savedUser);
@@ -58,13 +60,32 @@ export class UsersService {
     return this.usersRepository.findOneBy({ id });
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async findOneOrFail(id: string): Promise<User> {
+    const user = await this.findOneById(id);
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+    return user;
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<SafeUser> {
+    const existingUser = await this.findOneOrFail(id);
+
+    if (updateUserDto.phoneNumber && updateUserDto.phoneNumber !== existingUser.phoneNumber) {
+      await this.ensurePhoneNumberAvailable(updateUserDto.phoneNumber, id);
+    }
+
     await this.usersRepository.update(id, await this.withHashedPassword(updateUserDto));
-    return this.findOneById(id);
+    return this.findOneOrFail(id);
   }
 
   async delete(id: string) {
-    await this.usersRepository.softDelete(id);
+    const result = await this.usersRepository.softDelete(id);
+
+    if (!result.affected) {
+      throw new NotFoundException('用户不存在');
+    }
+
     return { id };
   }
 
@@ -100,6 +121,13 @@ export class UsersService {
       return user;
     }
     return null;
+  }
+
+  private async ensurePhoneNumberAvailable(phoneNumber: string, excludeUserId?: string) {
+    const existingUser = await this.findOneByPhoneNumber(phoneNumber);
+    if (existingUser && existingUser.id !== excludeUserId) {
+      throw new ConflictException('该手机号已存在');
+    }
   }
 
   private async withHashedPassword<T extends { password?: string }>(payload: T): Promise<T> {

@@ -8,6 +8,10 @@ import { AuthService } from './auth.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import type {
+  AuthenticatedRequest,
+  RefreshTokenRequest,
+} from './interfaces/authenticated-request.interface';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -19,7 +23,7 @@ export class AuthController {
   @ApiModule('LoginModule')
   @ApiOperation({ summary: '用户注册' })
   @ApiResponse({ status: 201, description: '注册成功' })
-  @ApiResponse({ status: 400, description: '手机号已存在' })
+  @ApiResponse({ status: 409, description: '手机号已存在' })
   register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
@@ -42,9 +46,8 @@ export class AuthController {
   @ApiOperation({ summary: '用户登出' })
   @ApiResponse({ status: 200, description: '登出成功' })
   @HttpCode(HttpStatus.OK)
-  logout(@Req() req: any) {
-    const userId = req.user?.id;
-    return this.authService.logout(userId);
+  logout(@Req() req: AuthenticatedRequest) {
+    return this.authService.logout(req.user.id);
   }
 
   @UseGuards(JwtRefreshGuard)
@@ -54,10 +57,8 @@ export class AuthController {
   @ApiOperation({ summary: '刷新 Token' })
   @ApiResponse({ status: 200, description: '刷新成功' })
   @HttpCode(HttpStatus.OK)
-  refreshTokens(@Req() req: any) {
-    const userId = req.user?.sub;
-    const refreshToken = req.user?.refreshToken;
-    return this.authService.refreshTokens(userId, refreshToken);
+  refreshTokens(@Req() req: RefreshTokenRequest) {
+    return this.authService.refreshTokens(req.user.sub, req.user.refreshToken);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -67,9 +68,8 @@ export class AuthController {
   @ApiOperation({ summary: '修改密码' })
   @ApiResponse({ status: 200, description: '修改成功' })
   @HttpCode(HttpStatus.OK)
-  changePassword(@Req() req: any, @Body() changePasswordDto: ChangePasswordDto) {
-    const userId = req.user?.id;
-    return this.authService.changePassword(userId, changePasswordDto);
+  changePassword(@Req() req: AuthenticatedRequest, @Body() changePasswordDto: ChangePasswordDto) {
+    return this.authService.changePassword(req.user.id, changePasswordDto);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -77,7 +77,7 @@ export class AuthController {
   @ApiBearerAuth()
   @ApiModule('ProfileModule')
   @ApiOperation({ summary: '获取个人信息' })
-  getProfile(@Req() req: any) {
+  getProfile(@Req() req: AuthenticatedRequest) {
     return req.user;
   }
 }
