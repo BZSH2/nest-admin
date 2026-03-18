@@ -14,7 +14,19 @@ export class AppController {
 
   @Public()
   @Get('health')
-  health(): string {
-    return 'ok';
+  health() {
+    return this.appService.getHealth();
+  }
+
+  @Public()
+  @Get('health/live')
+  live() {
+    return this.appService.getHealth();
+  }
+
+  @Public()
+  @Get('health/ready')
+  ready() {
+    return this.appService.getHealth();
   }
 }

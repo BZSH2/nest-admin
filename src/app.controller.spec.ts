@@ -19,4 +19,16 @@ describe('AppController', () => {
       expect(appController.getHello()).toBe('Hello World!');
     });
   });
+
+  describe('health', () => {
+    it('should return a healthy status payload', () => {
+      expect(appController.health()).toEqual(
+        expect.objectContaining({
+          status: 'ok',
+          timestamp: expect.any(String),
+          uptime: expect.any(Number),
+        }),
+      );
+    });
+  });
 });

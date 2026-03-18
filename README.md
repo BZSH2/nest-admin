@@ -23,6 +23,10 @@ pnpm install
 pnpm run start:dev
 ```
 
+默认启动后可访问：
+- API 文档：`/docs`
+- 健康检查：`/health`、`/health/live`、`/health/ready`
+
 ## 🏗️ 项目规范
 
 ### 代码风格
@@ -30,6 +34,7 @@ pnpm run start:dev
 
 - **Lint**: `pnpm run lint`
 - **Format**: `pnpm run format`
+- **Check**: `pnpm run check`
 - **EditorConfig**: 已配置 `.editorconfig`，请确保编辑器安装相应插件。
 
 ### 提交规范
@@ -39,7 +44,7 @@ pnpm run start:dev
 - **Commit Message**: 必须符合 `<type>(<scope>): <subject>` 格式。
 
 ### 分支管理
-- `main`: 主分支，受保护，仅允许 PR 合并。
+- `master`: 主分支，受保护，仅允许 PR 合并。
 - `feat/*`: 功能分支。
 - `fix/*`: 修复分支。
 
@@ -47,14 +52,20 @@ pnpm run start:dev
 
 ```bash
 # 单元测试
-pnpm run test
+pnpm test --runInBand
 
 # 覆盖率测试
 pnpm run test:cov
 
 # E2E 测试
-pnpm run test:e2e
+pnpm test:e2e --runInBand
 ```
+
+## 🚀 持续集成与部署
+
+- `CI` 工作流会在 push / pull request 到 `master` 时执行静态检查、构建、单测与 e2e。
+- `deploy` 工作流仅在 push 到 `master` 或手动触发时执行，避免 PR 阶段误部署。
+- 生产环境容器健康检查与部署脚本统一使用 `/health/live`，不再依赖 Swagger 页面作为存活判断。
 
 ## 📄 文档
 - [安全策略](./SECURITY.md)

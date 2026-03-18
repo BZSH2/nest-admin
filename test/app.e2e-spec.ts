@@ -50,7 +50,41 @@ describe('AppController (e2e)', () => {
           expect.objectContaining({
             code: 200,
             message: '请求成功',
-            data: 'ok',
+            data: expect.objectContaining({
+              status: 'ok',
+              timestamp: expect.any(String),
+              uptime: expect.any(Number),
+            }),
+          }),
+        );
+      });
+  });
+
+  it('/health/live (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/health/live')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.data).toEqual(
+          expect.objectContaining({
+            status: 'ok',
+            timestamp: expect.any(String),
+            uptime: expect.any(Number),
+          }),
+        );
+      });
+  });
+
+  it('/health/ready (GET)', () => {
+    return request(app.getHttpServer())
+      .get('/health/ready')
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.data).toEqual(
+          expect.objectContaining({
+            status: 'ok',
+            timestamp: expect.any(String),
+            uptime: expect.any(Number),
           }),
         );
       });
