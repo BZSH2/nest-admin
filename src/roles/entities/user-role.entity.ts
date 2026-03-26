@@ -16,10 +16,10 @@ export class UserRoleAssignment {
   @PrimaryGeneratedColumn('uuid', { comment: '用户角色关系ID' })
   id: string;
 
-  @Column('uuid', { comment: '用户ID' })
+  @Column({ type: 'char', length: 36, comment: '用户ID' })
   userId: string;
 
-  @Column('uuid', { comment: '角色ID' })
+  @Column({ type: 'char', length: 36, comment: '角色ID' })
   roleId: string;
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
