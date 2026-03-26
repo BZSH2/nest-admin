@@ -27,7 +27,7 @@ export class User {
   })
   role: UserRole | null;
 
-  @Column({ length: 50, nullable: true, comment: '昵称' })
+  @Column({ type: 'varchar', length: 50, nullable: true, comment: '昵称' })
   nickname: string | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true, comment: '头像URL' })
