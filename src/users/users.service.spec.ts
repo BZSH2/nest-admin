@@ -4,6 +4,8 @@ import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '../auth/enums/user-role.enum';
+import { Role } from '../roles/entities/role.entity';
+import { UserRoleAssignment } from '../roles/entities/user-role.entity';
 import { User } from './entities/user.entity';
 import { UsersService } from './users.service';
 
@@ -15,11 +17,15 @@ type MockRepository = {
   findOneBy: jest.Mock;
   update: jest.Mock;
   softDelete: jest.Mock;
+  delete: jest.Mock;
+  recover: jest.Mock;
 };
 
 describe('UsersService', () => {
   let service: UsersService;
   let usersRepository: MockRepository;
+  let rolesRepository: MockRepository;
+  let userRolesRepository: MockRepository;
   const configService = new ConfigService({
     ADMIN_PHONE_NUMBERS: '13800138000',
   });
@@ -33,6 +39,32 @@ describe('UsersService', () => {
       findOneBy: jest.fn(),
       update: jest.fn(),
       softDelete: jest.fn(),
+      delete: jest.fn(),
+      recover: jest.fn(),
+    };
+
+    rolesRepository = {
+      create: jest.fn((input) => input),
+      save: jest.fn(async (input) => ({ id: `role-${input.code}`, ...input })),
+      findAndCount: jest.fn(),
+      findOne: jest.fn(),
+      findOneBy: jest.fn(),
+      update: jest.fn(),
+      softDelete: jest.fn(),
+      delete: jest.fn(),
+      recover: jest.fn(),
+    };
+
+    userRolesRepository = {
+      create: jest.fn((input) => input),
+      save: jest.fn(async (input) => input),
+      findAndCount: jest.fn(),
+      findOne: jest.fn(),
+      findOneBy: jest.fn(),
+      update: jest.fn(),
+      softDelete: jest.fn(),
+      delete: jest.fn(),
+      recover: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -41,6 +73,14 @@ describe('UsersService', () => {
         {
           provide: getRepositoryToken(User),
           useValue: usersRepository,
+        },
+        {
+          provide: getRepositoryToken(Role),
+          useValue: rolesRepository,
+        },
+        {
+          provide: getRepositoryToken(UserRoleAssignment),
+          useValue: userRolesRepository,
         },
         {
           provide: ConfigService,
@@ -83,6 +123,11 @@ describe('UsersService', () => {
       phoneNumber: '13800138000',
       role: UserRole.ADMIN,
       nickname: '测试用户',
+    });
+    expect(userRolesRepository.delete).toHaveBeenCalledWith({ userId: 'user-1' });
+    expect(userRolesRepository.save).toHaveBeenCalledWith({
+      userId: 'user-1',
+      roleId: 'role-admin',
     });
     expect(result).not.toHaveProperty('password');
     expect(result).not.toHaveProperty('currentHashedRefreshToken');
@@ -165,6 +210,11 @@ describe('UsersService', () => {
       }),
     );
     expect(usersRepository.update).toHaveBeenCalledWith('user-1', { role: UserRole.ADMIN });
+    expect(userRolesRepository.delete).toHaveBeenCalledWith({ userId: 'user-1' });
+    expect(userRolesRepository.save).toHaveBeenCalledWith({
+      userId: 'user-1',
+      roleId: 'role-admin',
+    });
   });
 
   it('throws conflict when updating phone number to another existing user', async () => {

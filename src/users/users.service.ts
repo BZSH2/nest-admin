@@ -5,6 +5,9 @@ import * as bcrypt from 'bcrypt';
 import { Like, Repository } from 'typeorm';
 import { UserRole } from '../auth/enums/user-role.enum';
 import { resolveUserRole } from '../auth/utils/resolve-user-role';
+import { Role } from '../roles/entities/role.entity';
+import { UserRoleAssignment } from '../roles/entities/user-role.entity';
+import { SYSTEM_ROLE_SEEDS } from '../roles/role.constants';
 import type { CreateUserDto } from './dto/create-user.dto';
 import type { QueryUserDto } from './dto/query-user.dto';
 import type { UpdateUserDto } from './dto/update-user.dto';
@@ -17,19 +20,25 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @InjectRepository(Role)
+    private readonly rolesRepository: Repository<Role>,
+    @InjectRepository(UserRoleAssignment)
+    private readonly userRolesRepository: Repository<UserRoleAssignment>,
     private readonly configService: ConfigService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<SafeUser> {
     await this.ensurePhoneNumberAvailable(createUserDto.phoneNumber);
 
+    const resolvedRole = resolveUserRole(createUserDto.phoneNumber, this.configService);
     const user = this.usersRepository.create(
       await this.withHashedPassword({
         ...createUserDto,
-        role: resolveUserRole(createUserDto.phoneNumber, this.configService),
+        role: resolvedRole,
       }),
     );
     const savedUser = await this.usersRepository.save(user);
+    await this.syncUserRoleAssignment(savedUser.id, resolvedRole);
     return this.sanitizeUser(savedUser);
   }
 
@@ -93,12 +102,24 @@ export class UsersService {
     }
 
     await this.usersRepository.update(id, await this.withHashedPassword(updateUserDto));
-    return this.findOneOrFail(id);
+    const updatedUser = await this.findOneOrFail(id);
+
+    if (updateUserDto.phoneNumber && existingUser.role == null) {
+      const resolvedRole = resolveUserRole(
+        updatedUser.phoneNumber,
+        this.configService,
+        updatedUser.role,
+      );
+      await this.syncUserRoleAssignment(id, resolvedRole);
+    }
+
+    return updatedUser;
   }
 
   async assignRole(id: string, role: UserRole): Promise<SafeUser> {
     await this.findOneOrFail(id);
     await this.usersRepository.update(id, { role });
+    await this.syncUserRoleAssignment(id, role);
     return this.findOneOrFail(id);
   }
 
@@ -144,6 +165,44 @@ export class UsersService {
       return user;
     }
     return null;
+  }
+
+  private async syncUserRoleAssignment(userId: string, roleCode: UserRole) {
+    const role = await this.findOrCreateRoleRecord(roleCode);
+    await this.userRolesRepository.delete({ userId });
+    await this.userRolesRepository.save(
+      this.userRolesRepository.create({
+        userId,
+        roleId: role.id,
+      }),
+    );
+  }
+
+  private async findOrCreateRoleRecord(roleCode: UserRole) {
+    const existingRole = await this.rolesRepository.findOne({
+      where: { code: roleCode },
+      withDeleted: true,
+    });
+
+    if (existingRole) {
+      if (existingRole.deletedAt) {
+        await this.rolesRepository.recover(existingRole);
+      }
+      return existingRole;
+    }
+
+    const seed = SYSTEM_ROLE_SEEDS.find((item) => item.code === roleCode);
+    return this.rolesRepository.save(
+      this.rolesRepository.create({
+        code: roleCode,
+        name: seed?.name || roleCode,
+        description: seed?.description || null,
+        sort: seed?.sort || 0,
+        enabled: seed?.enabled ?? true,
+        isSystem: seed?.isSystem || false,
+        isDefault: seed?.isDefault || false,
+      }),
+    );
   }
 
   private async ensurePhoneNumberAvailable(phoneNumber: string, excludeUserId?: string) {
