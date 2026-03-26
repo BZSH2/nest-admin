@@ -29,6 +29,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('用户不存在');
     }
 
+    if (user.status === false) {
+      throw new UnauthorizedException('用户已被禁用');
+    }
+
     return {
       ...user,
       role: resolveUserRole(user.phoneNumber, this.configService, user.role),

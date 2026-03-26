@@ -2,31 +2,31 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { IsBoolean, IsInt, IsOptional, IsString, Min } from 'class-validator';
 
-export class QueryUserDto {
-  @ApiProperty({ description: '页码', example: 1, required: false })
+export class QueryLoginLogDto {
+  @ApiProperty({ required: false, example: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   page?: number = 1;
 
-  @ApiProperty({ description: '每页数量', example: 10, required: false })
+  @ApiProperty({ required: false, example: 10 })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   pageSize?: number = 10;
 
-  @ApiProperty({ description: '搜索关键字（手机号/昵称）', example: '138', required: false })
+  @ApiProperty({ required: false, example: '138' })
   @IsOptional()
   @IsString()
   keyword?: string;
 
-  @ApiProperty({ description: '是否启用', example: true, required: false })
+  @ApiProperty({ required: false, example: true })
   @IsOptional()
   @Transform(({ value }) =>
     value === '' || value == null ? undefined : value === 'true' || value === true,
   )
   @IsBoolean()
-  status?: boolean;
+  success?: boolean;
 }

@@ -28,10 +28,25 @@ export class User {
   role: UserRole | null;
 
   @Column({ length: 50, nullable: true, comment: '昵称' })
-  nickname: string;
+  nickname: string | null;
 
-  @Column({ nullable: true, comment: '头像URL' })
-  avatar: string;
+  @Column({ type: 'varchar', length: 255, nullable: true, comment: '头像URL' })
+  avatar: string | null;
+
+  @Column({ default: true, comment: '是否启用' })
+  status: boolean;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, comment: '备注' })
+  remark: string | null;
+
+  @Column({ type: 'datetime', nullable: true, comment: '最后登录时间' })
+  lastLoginAt: Date | null;
+
+  @Column({ type: 'varchar', length: 64, nullable: true, comment: '最后登录IP' })
+  lastLoginIp: string | null;
+
+  @Column({ type: 'datetime', nullable: true, comment: '密码更新时间' })
+  passwordUpdatedAt: Date | null;
 
   @Column({ nullable: true, select: false, comment: '当前刷新令牌哈希', type: 'varchar' })
   currentHashedRefreshToken: string | null;
@@ -43,5 +58,5 @@ export class User {
   updatedAt: Date;
 
   @DeleteDateColumn({ comment: '软删除时间' })
-  deletedAt: Date;
+  deletedAt: Date | null;
 }
