@@ -8,7 +8,7 @@ services:
     environment:
       HOST: 0.0.0.0
     ports:
-      - "35000:35000"
+      - "127.0.0.1:35000:35000"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
