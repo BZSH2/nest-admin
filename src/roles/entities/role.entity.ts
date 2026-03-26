@@ -18,7 +18,7 @@ export class Role {
   @Column({ length: 50, comment: '角色名称' })
   name: string;
 
-  @Column({ length: 255, nullable: true, comment: '角色描述' })
+  @Column({ type: 'varchar', length: 255, nullable: true, comment: '角色描述' })
   description: string | null;
 
   @Column({ default: 0, comment: '排序' })
