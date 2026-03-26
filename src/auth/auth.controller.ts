@@ -7,6 +7,7 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import type { Request } from 'express';
 import { ApiModule } from '../common/decorators/api-module.decorator';
 import { Public } from '../common/decorators/public.decorator';
 import { OperationMessageResponseDto } from '../common/dto/operation-message-response.dto';
@@ -45,8 +46,11 @@ export class AuthController {
   @ApiOkResponse({ description: '登录成功，返回 Token', type: AuthTokensResponseDto })
   @ApiResponse({ status: 401, description: '用户名或密码错误' })
   @HttpCode(HttpStatus.OK)
-  login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  login(@Body() loginDto: LoginDto, @Req() req: Request) {
+    return this.authService.login(loginDto, {
+      ip: this.resolveIp(req),
+      userAgent: req.get?.('user-agent') ?? null,
+    });
   }
 
   @UseGuards(JwtAuthGuard)
@@ -90,5 +94,13 @@ export class AuthController {
   @ApiOkResponse({ description: '获取成功', type: AuthProfileResponseDto })
   getProfile(@Req() req: AuthenticatedRequest) {
     return this.authService.getProfile(req.user);
+  }
+
+  private resolveIp(req: Request) {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (typeof forwarded === 'string' && forwarded) {
+      return forwarded.split(',')[0].trim();
+    }
+    return req.ip ?? null;
   }
 }

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, Length, Matches } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString, Length, Matches } from 'class-validator';
 
 export class CreateUserDto {
   @ApiProperty({ example: '13800138000', description: '手机号' })
@@ -19,4 +20,26 @@ export class CreateUserDto {
   @IsString()
   @Length(2, 20, { message: '昵称长度在2-20位之间' })
   nickname?: string;
+
+  @ApiProperty({
+    example: 'https://cdn.example.com/avatar.png',
+    description: '头像',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @Length(0, 255)
+  avatar?: string;
+
+  @ApiProperty({ example: true, description: '是否启用', required: false })
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  status?: boolean = true;
+
+  @ApiProperty({ example: '测试账号', description: '备注', required: false })
+  @IsOptional()
+  @IsString()
+  @Length(0, 255)
+  remark?: string;
 }

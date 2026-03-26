@@ -17,7 +17,9 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { QueryUserDto } from './dto/query-user.dto';
+import { ResetUserPasswordDto } from './dto/reset-user-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserStatusDto } from './dto/update-user-status.dto';
 import { UsersService } from './users.service';
 
 @ApiTags('Users')
@@ -61,6 +63,18 @@ export class UsersController {
   @ApiResponse({ status: 409, description: '手机号已存在' })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
+  }
+
+  @Patch(':id/status')
+  @ApiOperation({ summary: '更新用户启用状态' })
+  updateStatus(@Param('id') id: string, @Body() dto: UpdateUserStatusDto) {
+    return this.usersService.updateStatus(id, dto.status);
+  }
+
+  @Patch(':id/reset-password')
+  @ApiOperation({ summary: '重置用户密码' })
+  updatePassword(@Param('id') id: string, @Body() dto: ResetUserPasswordDto) {
+    return this.usersService.resetPassword(id, dto.newPassword);
   }
 
   @Delete(':id')

@@ -35,6 +35,10 @@ export class UsersService {
       await this.withHashedPassword({
         ...createUserDto,
         role: resolvedRole,
+        avatar: createUserDto.avatar ?? null,
+        status: createUserDto.status ?? true,
+        remark: createUserDto.remark ?? null,
+        passwordUpdatedAt: new Date(),
       }),
     );
     const savedUser = await this.usersRepository.save(user);
@@ -48,15 +52,39 @@ export class UsersService {
     const keyword = query.keyword?.trim();
 
     const where = keyword
-      ? [{ phoneNumber: Like(`%${keyword}%`) }, { nickname: Like(`%${keyword}%`) }]
-      : undefined;
+      ? [
+          {
+            phoneNumber: Like(`%${keyword}%`),
+            ...(query.status == null ? {} : { status: query.status }),
+          },
+          {
+            nickname: Like(`%${keyword}%`),
+            ...(query.status == null ? {} : { status: query.status }),
+          },
+        ]
+      : query.status == null
+        ? undefined
+        : { status: query.status };
 
     const [items, total] = await this.usersRepository.findAndCount({
       where,
       skip: (page - 1) * pageSize,
       take: pageSize,
       order: { createdAt: 'DESC' },
-      select: ['id', 'phoneNumber', 'role', 'nickname', 'avatar', 'createdAt', 'updatedAt'],
+      select: [
+        'id',
+        'phoneNumber',
+        'role',
+        'nickname',
+        'avatar',
+        'status',
+        'remark',
+        'lastLoginAt',
+        'lastLoginIp',
+        'passwordUpdatedAt',
+        'createdAt',
+        'updatedAt',
+      ],
     });
 
     return {
@@ -77,7 +105,14 @@ export class UsersService {
         'role',
         'nickname',
         'avatar',
+        'status',
+        'remark',
+        'lastLoginAt',
+        'lastLoginIp',
+        'passwordUpdatedAt',
         'currentHashedRefreshToken',
+        'createdAt',
+        'updatedAt',
       ],
     });
   }
@@ -101,7 +136,14 @@ export class UsersService {
       await this.ensurePhoneNumberAvailable(updateUserDto.phoneNumber, id);
     }
 
-    await this.usersRepository.update(id, await this.withHashedPassword(updateUserDto));
+    await this.usersRepository.update(
+      id,
+      await this.withHashedPassword({
+        ...updateUserDto,
+        avatar: updateUserDto.avatar === undefined ? undefined : (updateUserDto.avatar ?? null),
+        remark: updateUserDto.remark === undefined ? undefined : (updateUserDto.remark ?? null),
+      }),
+    );
     const updatedUser = await this.findOneOrFail(id);
 
     if (updateUserDto.phoneNumber && existingUser.role == null) {
@@ -114,6 +156,18 @@ export class UsersService {
     }
 
     return updatedUser;
+  }
+
+  async updateStatus(id: string, status: boolean) {
+    await this.findOneOrFail(id);
+    await this.usersRepository.update(id, { status });
+    return this.findOneOrFail(id);
+  }
+
+  async resetPassword(id: string, newPassword: string) {
+    await this.findOneOrFail(id);
+    await this.setPassword(id, newPassword);
+    return { message: '密码重置成功' };
   }
 
   async assignRole(id: string, role: UserRole): Promise<SafeUser> {
@@ -146,10 +200,33 @@ export class UsersService {
     });
   }
 
+  async updateLastLogin(userId: string, ip?: string | null) {
+    await this.usersRepository.update(userId, {
+      lastLoginAt: new Date(),
+      lastLoginIp: ip ?? null,
+    });
+  }
+
+  async setPassword(userId: string, plainPassword: string) {
+    await this.usersRepository.update(userId, {
+      password: await bcrypt.hash(plainPassword, 10),
+      passwordUpdatedAt: new Date(),
+      currentHashedRefreshToken: null,
+    });
+  }
+
   async getUserIfRefreshTokenMatches(refreshToken: string, userId: string) {
     const user = await this.usersRepository.findOne({
       where: { id: userId },
-      select: ['id', 'phoneNumber', 'role', 'nickname', 'avatar', 'currentHashedRefreshToken'],
+      select: [
+        'id',
+        'phoneNumber',
+        'role',
+        'nickname',
+        'avatar',
+        'status',
+        'currentHashedRefreshToken',
+      ],
     });
 
     if (!user?.currentHashedRefreshToken) {
@@ -220,6 +297,7 @@ export class UsersService {
     return {
       ...payload,
       password: await bcrypt.hash(payload.password, 10),
+      passwordUpdatedAt: new Date(),
     };
   }
 

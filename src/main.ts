@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import { setupSwagger } from './common/swagger/setup';
 import { OpenApiService } from './openapi/openapi.service';
 
@@ -31,9 +30,6 @@ async function bootstrap() {
 
   // Global Filters
   app.useGlobalFilters(new HttpExceptionFilter());
-
-  // Global Interceptors
-  app.useGlobalInterceptors(new TransformInterceptor());
 
   // CORS
   app.enableCors();
