@@ -124,6 +124,8 @@ pnpm test:e2e --runInBand
 - `.env.example` 默认使用 `HOST=0.0.0.0`，更适合 Docker / 服务器部署场景。
 
 ## 📄 文档
+- [现有产品文档](./docs/current-product-doc.md)
+- [系统管理模块产品规划](./docs/system-management-prd.md)
 - [安全策略](./SECURITY.md)
 - [变更日志](./CHANGELOG.md)
 
