@@ -107,6 +107,24 @@ pnpm run test:cov
 pnpm test:e2e --runInBand
 ```
 
+## 🗃️ 数据库 Migration
+
+当前仓库已补齐 TypeORM migration 基础配置，可直接执行：
+
+```bash
+# 查看待执行 migration
+pnpm run migration:show
+
+# 执行 migration
+pnpm run migration:run
+
+# 回滚最近一次 migration
+pnpm run migration:revert
+```
+
+本次新增的自定义表单模块对应 migration：
+- `src/database/migrations/1776224000000-create-custom-forms-table.ts`
+
 当前测试覆盖包括：
 - App 基础接口
 - 健康检查接口

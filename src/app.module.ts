@@ -11,6 +11,7 @@ import { OperationLogInterceptor } from './common/interceptors/operation-log.int
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import databaseConfig from './config/database.config';
 import { validateEnv } from './config/env.validation';
+import { CustomFormsModule } from './custom-forms/custom-forms.module';
 import { LoginLogsModule } from './login-logs/login-logs.module';
 import { MenusModule } from './menus/menus.module';
 import { OpenApiModule } from './openapi/openapi.module';
@@ -40,6 +41,7 @@ import { UsersModule } from './users/users.module';
     RolesModule,
     MenusModule,
     SystemConfigsModule,
+    CustomFormsModule,
     LoginLogsModule,
     OperationLogsModule,
   ],
