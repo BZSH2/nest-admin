@@ -291,20 +291,22 @@ export class CustomFormsService {
     label: string,
     index: number,
     ruleIndex: number,
-  ) {
-    const triggers = Array.isArray(trigger) ? trigger : [trigger];
+  ): 'blur' | 'change' | Array<'blur' | 'change'> {
+    const triggerList = Array.isArray(trigger) ? trigger : [trigger];
+    const normalizedTriggers: Array<'blur' | 'change'> = [];
 
-    if (
-      triggers.some(
-        (item) => typeof item !== 'string' || !RULE_TRIGGER_SET.has(item as 'blur' | 'change'),
-      )
-    ) {
-      throw new BadRequestException(
-        `第 ${index + 1} 个字段（${label}）的第 ${ruleIndex + 1} 条规则 trigger 非法`,
-      );
+    for (const item of triggerList) {
+      if (typeof item !== 'string' || !RULE_TRIGGER_SET.has(item as 'blur' | 'change')) {
+        throw new BadRequestException(
+          `第 ${index + 1} 个字段（${label}）的第 ${ruleIndex + 1} 条规则 trigger 非法`,
+        );
+      }
+      normalizedTriggers.push(item as 'blur' | 'change');
     }
 
-    return Array.isArray(trigger) ? Array.from(new Set(triggers)) : trigger;
+    return Array.isArray(trigger)
+      ? Array.from(new Set(normalizedTriggers))
+      : normalizedTriggers[0];
   }
 
   private normalizePattern(
