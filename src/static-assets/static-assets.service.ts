@@ -112,20 +112,20 @@ export class StaticAssetsService {
   }
 
   async upload(file: UploadedStaticAssetFile | undefined, dto: UploadStaticAssetDto) {
-    const buffer = file?.buffer;
-    if (!buffer?.length) {
+    if (!file || !file.buffer?.length) {
       throw new BadRequestException('请上传文件');
     }
 
-    const originalName = this.normalizeOriginalName(file.originalname);
-    const extension = resolveStaticAssetExtension(originalName, file.mimetype);
-    const mimeType = resolveStaticAssetMimeType(file.mimetype, extension);
+    const { buffer, originalname, mimetype, size: fileSize } = file;
+    const originalName = this.normalizeOriginalName(originalname);
+    const extension = resolveStaticAssetExtension(originalName, mimetype);
+    const mimeType = resolveStaticAssetMimeType(mimetype, extension);
     const displayName = this.resolveDisplayName(dto.name, originalName, extension);
     const storagePath = buildStaticAssetStoragePath(extension);
     const storageRootDir = this.getStorageRootDir();
     const absolutePath = buildStaticAssetAbsolutePath(storageRootDir, storagePath);
     const hash = createHash('sha256').update(buffer).digest('hex');
-    const size = Number(file?.size ?? buffer.length);
+    const size = Number(fileSize ?? buffer.length);
 
     await mkdir(dirname(absolutePath), { recursive: true });
     await writeFile(absolutePath, buffer);
