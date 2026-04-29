@@ -18,6 +18,7 @@ import { MenusModule } from './menus/menus.module';
 import { OpenApiModule } from './openapi/openapi.module';
 import { OperationLogsModule } from './operation-logs/operation-logs.module';
 import { RolesModule } from './roles/roles.module';
+import { ProductsModule } from './products/products.module';
 import { StaticAssetsModule } from './static-assets/static-assets.module';
 import { SystemConfigsModule } from './system-configs/system-configs.module';
 import { UsersModule } from './users/users.module';
@@ -44,6 +45,7 @@ import { UsersModule } from './users/users.module';
     MenusModule,
     SystemConfigsModule,
     DnsRelationsModule,
+    ProductsModule,
     StaticAssetsModule,
     CustomFormsModule,
     LoginLogsModule,
