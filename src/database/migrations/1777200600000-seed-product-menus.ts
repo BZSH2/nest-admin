@@ -188,12 +188,7 @@ export class SeedProductMenus1777200600000 implements MigrationInterface {
         DELETE FROM menus
         WHERE code IN (?, ?, ?, ?)
       `,
-      [
-        'system_product_delete',
-        'system_product_update',
-        'system_product_create',
-        'system_product',
-      ],
+      ['system_product_delete', 'system_product_update', 'system_product_create', 'system_product'],
     );
   }
 }
