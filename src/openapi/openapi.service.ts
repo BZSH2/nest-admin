@@ -111,8 +111,9 @@ export class OpenApiService {
 
     for (const mod of modules) {
       const { prefix: targetPrefix, service: targetModules } = mod;
+      const resolvedModules = this.resolveTargetModules(targetPrefix, targetModules);
 
-      for (const targetModuleName of targetModules) {
+      for (const targetModuleName of resolvedModules) {
         const newPaths: any = {};
         const sourcePaths = OpenApiService.document.paths || {};
 
@@ -178,6 +179,37 @@ export class OpenApiService {
         },
       ],
     });
+  }
+
+  private resolveTargetModules(prefix: string, targetModules: string[]) {
+    if (!targetModules?.length) {
+      return [];
+    }
+
+    if (!targetModules.includes('*')) {
+      return Array.from(new Set(targetModules));
+    }
+
+    const modules = new Set<string>();
+    const sourcePaths = OpenApiService.document.paths || {};
+    const methods = ['get', 'post', 'put', 'delete', 'patch', 'options', 'head', 'trace'];
+
+    for (const pathItem of Object.values(sourcePaths)) {
+      if (!pathItem) continue;
+
+      for (const method of methods) {
+        const operation = (pathItem as any)[method];
+        if (!operation) continue;
+
+        const tags = operation.tags || [];
+        const moduleName = operation[API_MODULE_EXTENSION];
+        if (moduleName && tags.includes(prefix)) {
+          modules.add(moduleName);
+        }
+      }
+    }
+
+    return Array.from(modules);
   }
 
   private filterComponents(paths: any, sourceComponents: any) {
