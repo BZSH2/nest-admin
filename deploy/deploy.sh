@@ -35,6 +35,10 @@ docker compose -f "$COMPOSE_FILE" pull
 
 docker compose -f "$COMPOSE_FILE" up -d --remove-orphans
 
+if ! docker network inspect "$NETWORK_NAME" --format '{{json .Containers}}' | grep -q '"Name":"nest-admin"'; then
+  docker network connect --alias nest-admin "$NETWORK_NAME" nest-admin
+fi
+
 for _ in $(seq 1 30); do
   if curl -fsS "http://127.0.0.1:${APP_PORT}/api/health/ready" >/dev/null; then
     echo "Deploy succeeded: app is responding on port ${APP_PORT}."
