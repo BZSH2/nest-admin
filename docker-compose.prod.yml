@@ -9,6 +9,8 @@ services:
       HOST: 0.0.0.0
     ports:
       - "127.0.0.1:35000:35000"
+    networks:
+      - admin_shared
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:
@@ -22,3 +24,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
+
+networks:
+  admin_shared:
+    external: true

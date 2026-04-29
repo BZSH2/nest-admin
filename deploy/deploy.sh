@@ -10,6 +10,7 @@ set -euo pipefail
 APP_PORT="${APP_PORT:-35000}"
 COMPOSE_FILE="${DEPLOY_PATH}/docker-compose.prod.yml"
 ENV_FILE="${DEPLOY_PATH}/.env"
+NETWORK_NAME="${ADMIN_SHARED_NETWORK:-admin_shared}"
 
 if [ ! -f "$COMPOSE_FILE" ]; then
   echo "Compose file not found: $COMPOSE_FILE" >&2
@@ -22,6 +23,10 @@ if [ ! -f "$ENV_FILE" ]; then
 fi
 
 cd "$DEPLOY_PATH"
+
+if ! docker network inspect "$NETWORK_NAME" >/dev/null 2>&1; then
+  docker network create "$NETWORK_NAME"
+fi
 
 echo "$ACR_PASSWORD" | docker login "$ACR_REGISTRY" -u "$ACR_USERNAME" --password-stdin
 export DEPLOY_IMAGE
