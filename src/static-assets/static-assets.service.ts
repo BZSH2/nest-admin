@@ -1,12 +1,7 @@
 import { createHash } from 'node:crypto';
 import { mkdir, unlink, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
-import {
-  BadRequestException,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, Like, Repository } from 'typeorm';
@@ -52,7 +47,11 @@ export class StaticAssetsService {
     const keyword = query.keyword?.trim();
     const normalizedFolder = query.folder?.trim();
     const baseFilter: Record<string, unknown> = {
-      ...(query.imagesOnly ? { fileType: 'image' } : query.fileType ? { fileType: query.fileType } : {}),
+      ...(query.imagesOnly
+        ? { fileType: 'image' }
+        : query.fileType
+          ? { fileType: query.fileType }
+          : {}),
       ...(query.uncategorizedOnly
         ? { folder: IsNull() }
         : normalizedFolder
@@ -270,7 +269,11 @@ export class StaticAssetsService {
     return normalized.slice(0, 255);
   }
 
-  private resolveDisplayName(customName: string | undefined, originalName: string, extension: string) {
+  private resolveDisplayName(
+    customName: string | undefined,
+    originalName: string,
+    extension: string,
+  ) {
     const normalized = customName?.trim();
     if (normalized) {
       return normalized.slice(0, 120);

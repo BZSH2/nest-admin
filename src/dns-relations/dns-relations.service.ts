@@ -78,10 +78,7 @@ export class DnsRelationsService {
       environment: dto.environment === undefined ? item.environment : (dto.environment ?? null),
       domain:
         dto.domain === undefined ? item.domain : this.normalizeRequiredText(dto.domain, '域名'),
-      provider:
-        dto.provider === undefined
-          ? item.provider
-          : this.normalizeNullableText(dto.provider),
+      provider: dto.provider === undefined ? item.provider : this.normalizeNullableText(dto.provider),
       recordType: dto.recordType ?? item.recordType,
       recordValue:
         dto.recordValue === undefined

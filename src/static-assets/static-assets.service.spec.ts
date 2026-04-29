@@ -1,10 +1,10 @@
 import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { ConfigService } from '@nestjs/config';
 import { NotFoundException } from '@nestjs/common';
-import { StaticAssetsService } from './static-assets.service';
+import { ConfigService } from '@nestjs/config';
 import type { StaticAsset } from './entities/static-asset.entity';
+import { StaticAssetsService } from './static-assets.service';
 
 describe('StaticAssetsService', () => {
   let service: StaticAssetsService;
@@ -190,10 +190,7 @@ describe('StaticAssetsService', () => {
       expect.objectContaining({
         requestedCount: 3,
         deletedCount: 2,
-        ids: [
-          '7a8c3aa4-2e05-4a8f-8df5-16ced58ba31f',
-          '8b3a4bd7-9858-4e8d-98bf-867661244f4b',
-        ],
+        ids: ['7a8c3aa4-2e05-4a8f-8df5-16ced58ba31f', '8b3a4bd7-9858-4e8d-98bf-867661244f4b'],
         missingIds: ['4e091d4f-c01d-4614-a13d-a11d684dbf80'],
       }),
     );
