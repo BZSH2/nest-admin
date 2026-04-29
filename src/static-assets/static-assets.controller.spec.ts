@@ -33,7 +33,11 @@ describe('StaticAssetsController', () => {
   it('delegates list query to service', () => {
     controller.findAll({ page: 1, pageSize: 10, keyword: 'logo' });
 
-    expect(staticAssetsService.findAll).toHaveBeenCalledWith({ page: 1, pageSize: 10, keyword: 'logo' });
+    expect(staticAssetsService.findAll).toHaveBeenCalledWith({
+      page: 1,
+      pageSize: 10,
+      keyword: 'logo',
+    });
   });
 
   it('delegates folder options query to service', () => {

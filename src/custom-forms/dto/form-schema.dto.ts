@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   Allow,
@@ -17,7 +18,6 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   FORM_FIELD_TYPES,
   type FormFieldType,
@@ -70,7 +70,7 @@ export class FormRuleDto implements FormRule {
 
   @ApiPropertyOptional({
     description: '正则建议传 source 字符串，或 { source, flags } 的可序列化对象',
-    example: { source: '^1[3-9]\\d{9}$' },
+    example: { source: '^1[3-9]\d{9}$' },
   })
   @IsOptional()
   @Allow()

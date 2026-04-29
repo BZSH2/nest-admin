@@ -32,7 +32,10 @@ export class StaticAssetDetailDto {
   @ApiProperty({ description: '存储相对路径', example: '2026/04/28/1714278900000-demo.png' })
   storagePath: string;
 
-  @ApiProperty({ description: '资源访问路径', example: '/static-assets/2026/04/28/1714278900000-demo.png' })
+  @ApiProperty({
+    description: '资源访问路径',
+    example: '/static-assets/2026/04/28/1714278900000-demo.png',
+  })
   accessPath: string;
 
   @ApiProperty({
@@ -41,7 +44,10 @@ export class StaticAssetDetailDto {
   })
   accessUrl: string;
 
-  @ApiProperty({ description: '文件哈希（SHA-256）', example: 'c0535e4be2b79ffd93291305436bf889314e4a3faec05ecffcbb7df31fdf0bce' })
+  @ApiProperty({
+    description: '文件哈希（SHA-256）',
+    example: 'c0535e4be2b79ffd93291305436bf889314e4a3faec05ecffcbb7df31fdf0bce',
+  })
   hash: string;
 
   @ApiPropertyOptional({ description: '备注', example: '官网公共资源', nullable: true })

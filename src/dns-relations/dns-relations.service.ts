@@ -46,7 +46,7 @@ export class DnsRelationsService {
     return this.findOneOrFail(id);
   }
 
-  async create(dto: CreateDnsRelationDto) {
+  create(dto: CreateDnsRelationDto) {
     return this.dnsRelationsRepository.save(
       this.dnsRelationsRepository.create({
         projectName: this.normalizeRequiredText(dto.projectName, '项目名称'),
@@ -72,11 +72,16 @@ export class DnsRelationsService {
           ? item.projectName
           : this.normalizeRequiredText(dto.projectName, '项目名称'),
       serviceName:
-        dto.serviceName === undefined ? item.serviceName : this.normalizeNullableText(dto.serviceName),
+        dto.serviceName === undefined
+          ? item.serviceName
+          : this.normalizeNullableText(dto.serviceName),
       environment: dto.environment === undefined ? item.environment : (dto.environment ?? null),
       domain:
         dto.domain === undefined ? item.domain : this.normalizeRequiredText(dto.domain, '域名'),
-      provider: dto.provider === undefined ? item.provider : this.normalizeNullableText(dto.provider),
+      provider:
+        dto.provider === undefined
+          ? item.provider
+          : this.normalizeNullableText(dto.provider),
       recordType: dto.recordType ?? item.recordType,
       recordValue:
         dto.recordValue === undefined

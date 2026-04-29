@@ -63,7 +63,17 @@ class CustomFormRuleDetailDto {
 class CustomFormItemDetailDto {
   @ApiProperty({
     description: '字段类型',
-    enum: ['input', 'textarea', 'number', 'select', 'radio', 'checkbox', 'switch', 'date', 'custom'],
+    enum: [
+      'input',
+      'textarea',
+      'number',
+      'select',
+      'radio',
+      'checkbox',
+      'switch',
+      'date',
+      'custom',
+    ],
     example: 'input',
   })
   type: string;

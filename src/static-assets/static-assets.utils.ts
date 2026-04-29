@@ -103,8 +103,14 @@ export function buildStaticAssetAccessUrl(
   return normalizedBase ? `${normalizedBase}${accessPath}` : accessPath;
 }
 
-export function resolveStaticAssetExtension(originalName?: string | null, mimetype?: string | null) {
-  const byName = extname(originalName ?? '').replace(/^\./, '').trim().toLowerCase();
+export function resolveStaticAssetExtension(
+  originalName?: string | null,
+  mimetype?: string | null,
+) {
+  const byName = extname(originalName ?? '')
+    .replace(/^\./, '')
+    .trim()
+    .toLowerCase();
   if (byName) {
     return byName.slice(0, 20);
   }
@@ -134,15 +140,24 @@ export function inferStaticAssetFileType(
   const normalizedMime = mimetype?.trim().toLowerCase();
   const normalizedExtension = extension?.trim().toLowerCase();
 
-  if (normalizedMime?.startsWith('image/') || (normalizedExtension && IMAGE_EXTENSIONS.has(normalizedExtension))) {
+  if (
+    normalizedMime?.startsWith('image/') ||
+    (normalizedExtension && IMAGE_EXTENSIONS.has(normalizedExtension))
+  ) {
     return 'image';
   }
 
-  if (normalizedMime?.startsWith('video/') || (normalizedExtension && VIDEO_EXTENSIONS.has(normalizedExtension))) {
+  if (
+    normalizedMime?.startsWith('video/') ||
+    (normalizedExtension && VIDEO_EXTENSIONS.has(normalizedExtension))
+  ) {
     return 'video';
   }
 
-  if (normalizedMime?.startsWith('audio/') || (normalizedExtension && AUDIO_EXTENSIONS.has(normalizedExtension))) {
+  if (
+    normalizedMime?.startsWith('audio/') ||
+    (normalizedExtension && AUDIO_EXTENSIONS.has(normalizedExtension))
+  ) {
     return 'audio';
   }
 

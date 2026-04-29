@@ -23,7 +23,11 @@ export class QueryDnsRelationDto {
   @IsString()
   keyword?: string;
 
-  @ApiProperty({ required: false, enum: ['dev', 'test', 'staging', 'uat', 'prod'], example: 'prod' })
+  @ApiProperty({
+    required: false,
+    enum: ['dev', 'test', 'staging', 'uat', 'prod'],
+    example: 'prod',
+  })
   @IsOptional()
   @IsIn(['dev', 'test', 'staging', 'uat', 'prod'])
   environment?: DnsRelationEnvironment;

@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsIn, IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
-import type { DnsRelationEnvironment, DnsRecordType } from '../entities/dns-relation.entity';
+import type { DnsRecordType, DnsRelationEnvironment } from '../entities/dns-relation.entity';
 
 export class CreateDnsRelationDto {
   @ApiProperty({ example: 'vue-admin' })
@@ -15,7 +15,11 @@ export class CreateDnsRelationDto {
   @Length(0, 100)
   serviceName?: string | null;
 
-  @ApiProperty({ required: false, enum: ['dev', 'test', 'staging', 'uat', 'prod'], example: 'prod' })
+  @ApiProperty({
+    required: false,
+    enum: ['dev', 'test', 'staging', 'uat', 'prod'],
+    example: 'prod',
+  })
   @IsOptional()
   @IsIn(['dev', 'test', 'staging', 'uat', 'prod'])
   environment?: DnsRelationEnvironment | null;

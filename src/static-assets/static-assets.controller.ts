@@ -13,6 +13,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -23,7 +24,6 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { UserRole } from '../auth/enums/user-role.enum';
 import { ApiModule } from '../common/decorators/api-module.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -125,7 +125,10 @@ export class StaticAssetsController {
   @ApiCreatedResponse({ description: '上传成功', type: StaticAssetDetailResponseDto })
   @ApiResponse({ status: 400, description: '未上传文件或表单字段不合法' })
   @ApiResponse({ status: 403, description: '需要管理员权限' })
-  upload(@UploadedFile() file: UploadedStaticAssetFile | undefined, @Body() dto: UploadStaticAssetDto) {
+  upload(
+    @UploadedFile() file: UploadedStaticAssetFile | undefined,
+    @Body() dto: UploadStaticAssetDto,
+  ) {
     return this.staticAssetsService.upload(file, dto);
   }
 

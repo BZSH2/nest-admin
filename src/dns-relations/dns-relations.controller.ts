@@ -16,10 +16,10 @@ import { UserRole } from '../auth/enums/user-role.enum';
 import { ApiModule } from '../common/decorators/api-module.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { DnsRelationsService } from './dns-relations.service';
 import { CreateDnsRelationDto } from './dto/create-dns-relation.dto';
 import { QueryDnsRelationDto } from './dto/query-dns-relation.dto';
 import { UpdateDnsRelationDto } from './dto/update-dns-relation.dto';
-import { DnsRelationsService } from './dns-relations.service';
 
 @ApiTags('DnsRelations')
 @Controller('dns-relations')

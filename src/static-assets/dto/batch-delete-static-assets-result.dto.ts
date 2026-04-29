@@ -1,7 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class BatchDeleteStaticAssetsResultDto {
-  @ApiProperty({ description: '本次批量删除结果说明', example: '批量删除完成，成功删除 2 条静态资源' })
+  @ApiProperty({
+    description: '本次批量删除结果说明',
+    example: '批量删除完成，成功删除 2 条静态资源',
+  })
   message: string;
 
   @ApiProperty({ description: '请求删除的 ID 数量', example: 3 })

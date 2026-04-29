@@ -29,9 +29,7 @@ export class CustomFormsService {
     const pageSize = query.pageSize ?? 10;
     const keyword = query.keyword?.trim();
 
-    const where = keyword
-      ? [{ code: Like(`%${keyword}%`) }, { name: Like(`%${keyword}%`) }]
-      : {};
+    const where = keyword ? [{ code: Like(`%${keyword}%`) }, { name: Like(`%${keyword}%`) }] : {};
 
     const [items, total] = await this.customFormsRepository.findAndCount({
       where,
@@ -304,9 +302,7 @@ export class CustomFormsService {
       normalizedTriggers.push(item as 'blur' | 'change');
     }
 
-    return Array.isArray(trigger)
-      ? Array.from(new Set(normalizedTriggers))
-      : normalizedTriggers[0];
+    return Array.isArray(trigger) ? Array.from(new Set(normalizedTriggers)) : normalizedTriggers[0];
   }
 
   private normalizePattern(
