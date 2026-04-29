@@ -9,6 +9,9 @@ describe('validateEnv', () => {
     HOST: '0.0.0.0',
     PROTOCOL: 'http',
     ADMIN_PHONE_NUMBERS: '13800138000,13900139000',
+    STATIC_ASSETS_DIR: 'storage/static-assets',
+    STATIC_ASSETS_ROUTE_PREFIX: 'static-assets',
+    STATIC_ASSETS_PUBLIC_BASE_URL: 'https://static.example.com',
     DB_HOST: '127.0.0.1',
     DB_PORT: '3306',
     DB_USERNAME: 'root',
@@ -29,6 +32,9 @@ describe('validateEnv', () => {
         DB_SYNCHRONIZE: false,
         HOST: '0.0.0.0',
         ADMIN_PHONE_NUMBERS: '13800138000,13900139000',
+        STATIC_ASSETS_DIR: 'storage/static-assets',
+        STATIC_ASSETS_ROUTE_PREFIX: 'static-assets',
+        STATIC_ASSETS_PUBLIC_BASE_URL: 'https://static.example.com',
       }),
     );
   });

@@ -73,6 +73,42 @@ ADMIN_PHONE_NUMBERS=13800138000,13900139000
 
 Swagger 也已同步补齐这些响应模型，前后端联调时可以直接看文档约定字段。
 
+## 🖼️ 静态资源接口
+
+当前已补齐一套基础静态资源管理接口，默认面向 **admin** 使用：
+
+- `GET /static-assets`：分页查询静态资源
+- `GET /static-assets/folders`：获取资源分组 / 目录选项（含数量）
+- `GET /static-assets/:id`：查询静态资源详情
+- `POST /static-assets/upload`：上传静态资源（`multipart/form-data`）
+- `PATCH /static-assets/:id`：更新资源名称 / 分组 / 备注
+- `DELETE /static-assets/batch`：批量删除静态资源
+- `DELETE /static-assets/:id`：删除静态资源（软删除记录 + 尝试删除物理文件）
+
+默认行为：
+- 文件默认保存到 `storage/static-assets`
+- 默认公开访问路径为 `/<STATIC_ASSETS_ROUTE_PREFIX>/...`，默认即 `/static-assets/...`
+- 列表查询支持：
+  - `keyword`
+  - `folder`
+  - `fileType`
+  - `imagesOnly=true`（前端图片库模式）
+  - `uncategorizedOnly=true`（仅未分组资源）
+- 分组接口会返回目录名、是否未分组、各目录资源数量
+- 批量删除接口会返回请求数量、成功删除数量、缺失 ID 列表
+- 返回结果会同时给出：
+  - `storagePath`：存储相对路径
+  - `accessPath`：站内访问路径
+  - `accessUrl`：若配置 `STATIC_ASSETS_PUBLIC_BASE_URL`，则返回完整公网 URL
+
+环境变量补充：
+
+```env
+STATIC_ASSETS_DIR=storage/static-assets
+STATIC_ASSETS_ROUTE_PREFIX=static-assets
+STATIC_ASSETS_PUBLIC_BASE_URL=
+```
+
 ## 🏗️ 项目规范
 
 ### 代码风格

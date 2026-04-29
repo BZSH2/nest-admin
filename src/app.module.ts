@@ -12,11 +12,13 @@ import { TransformInterceptor } from './common/interceptors/transform.intercepto
 import databaseConfig from './config/database.config';
 import { validateEnv } from './config/env.validation';
 import { CustomFormsModule } from './custom-forms/custom-forms.module';
+import { DnsRelationsModule } from './dns-relations/dns-relations.module';
 import { LoginLogsModule } from './login-logs/login-logs.module';
 import { MenusModule } from './menus/menus.module';
 import { OpenApiModule } from './openapi/openapi.module';
 import { OperationLogsModule } from './operation-logs/operation-logs.module';
 import { RolesModule } from './roles/roles.module';
+import { StaticAssetsModule } from './static-assets/static-assets.module';
 import { SystemConfigsModule } from './system-configs/system-configs.module';
 import { UsersModule } from './users/users.module';
 
@@ -41,6 +43,8 @@ import { UsersModule } from './users/users.module';
     RolesModule,
     MenusModule,
     SystemConfigsModule,
+    DnsRelationsModule,
+    StaticAssetsModule,
     CustomFormsModule,
     LoginLogsModule,
     OperationLogsModule,

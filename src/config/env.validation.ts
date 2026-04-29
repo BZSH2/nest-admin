@@ -58,6 +58,18 @@ export function validateEnv(config: EnvRecord) {
     PROTOCOL: typeof config.PROTOCOL === 'string' ? config.PROTOCOL : 'http',
     ADMIN_PHONE_NUMBERS:
       typeof config.ADMIN_PHONE_NUMBERS === 'string' ? config.ADMIN_PHONE_NUMBERS : '',
+    STATIC_ASSETS_DIR:
+      typeof config.STATIC_ASSETS_DIR === 'string'
+        ? config.STATIC_ASSETS_DIR
+        : 'storage/static-assets',
+    STATIC_ASSETS_ROUTE_PREFIX:
+      typeof config.STATIC_ASSETS_ROUTE_PREFIX === 'string'
+        ? config.STATIC_ASSETS_ROUTE_PREFIX
+        : 'static-assets',
+    STATIC_ASSETS_PUBLIC_BASE_URL:
+      typeof config.STATIC_ASSETS_PUBLIC_BASE_URL === 'string'
+        ? config.STATIC_ASSETS_PUBLIC_BASE_URL
+        : '',
     DB_HOST: ensureString(config, 'DB_HOST'),
     DB_PORT: ensurePort(config, 'DB_PORT', 3306),
     DB_USERNAME: ensureString(config, 'DB_USERNAME'),
