@@ -3,9 +3,12 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  JoinColumn,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Product } from '../../products/entities/product.entity';
 
 export type MenuType = 'directory' | 'menu' | 'button';
 
@@ -19,6 +22,13 @@ export class Menu {
 
   @Column({ length: 50, comment: '菜单名称' })
   name: string;
+
+  @Column({ type: 'varchar', length: 36, nullable: true, comment: '所属产品ID' })
+  productId: string | null;
+
+  @ManyToOne(() => Product, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'productId' })
+  product: Product | null;
 
   @Column({ type: 'char', length: 36, nullable: true, comment: '父级菜单ID' })
   parentId: string | null;

@@ -23,6 +23,15 @@ export class QueryMenuDto {
   @IsString()
   keyword?: string;
 
+  @ApiProperty({
+    required: false,
+    example: '7a8c3aa4-2e05-4a8f-8df5-16ced58ba31f',
+    description: '所属产品ID',
+  })
+  @IsOptional()
+  @IsString()
+  productId?: string;
+
   @ApiProperty({ required: false, enum: ['directory', 'menu', 'button'] })
   @IsOptional()
   @IsIn(['directory', 'menu', 'button'])

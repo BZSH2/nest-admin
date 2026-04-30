@@ -28,6 +28,11 @@ export class CreateMenuDto {
   @Length(2, 50)
   name: string;
 
+  @ApiProperty({ required: false, example: null, description: '所属产品ID' })
+  @IsOptional()
+  @IsUUID('4', { message: '所属产品ID格式不正确' })
+  productId?: string | null;
+
   @ApiProperty({ required: false, example: null, description: '父级菜单ID' })
   @IsOptional()
   @IsUUID('4', { message: '父级菜单ID格式不正确' })

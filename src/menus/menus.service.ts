@@ -1,70 +1,40 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Like, Repository } from 'typeorm';
+import { Product } from '../products/entities/product.entity';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { QueryMenuDto } from './dto/query-menu.dto';
 import { UpdateMenuDto } from './dto/update-menu.dto';
 import { Menu } from './entities/menu.entity';
+
+type MenuTreeItem = Menu & { children: MenuTreeItem[] };
 
 @Injectable()
 export class MenusService {
   constructor(
     @InjectRepository(Menu)
     private readonly menusRepository: Repository<Menu>,
+    @InjectRepository(Product)
+    private readonly productsRepository: Repository<Product>,
   ) {}
 
   async findAll(query: QueryMenuDto) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 10;
-    const keyword = query.keyword?.trim();
-
-    const where = keyword
-      ? [
-          {
-            code: Like(`%${keyword}%`),
-            ...(query.type ? { type: query.type } : {}),
-            ...(query.enabled == null ? {} : { enabled: query.enabled }),
-          },
-          {
-            name: Like(`%${keyword}%`),
-            ...(query.type ? { type: query.type } : {}),
-            ...(query.enabled == null ? {} : { enabled: query.enabled }),
-          },
-          {
-            permission: Like(`%${keyword}%`),
-            ...(query.type ? { type: query.type } : {}),
-            ...(query.enabled == null ? {} : { enabled: query.enabled }),
-          },
-        ]
-      : {
-          ...(query.type ? { type: query.type } : {}),
-          ...(query.enabled == null ? {} : { enabled: query.enabled }),
-        };
-
-    const [items, total] = await this.menusRepository.findAndCount({
-      where,
+    const menus = await this.menusRepository.find({
+      where: this.buildWhere(query),
       order: { sort: 'ASC', createdAt: 'ASC' },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
     });
+    const items = this.buildTree(menus);
 
-    return { items, total, page, pageSize };
+    return { items, total: menus.length, page: 1, pageSize: menus.length };
   }
 
-  async findTree() {
-    const menus = await this.menusRepository.find({ order: { sort: 'ASC', createdAt: 'ASC' } });
-    const map = new Map(menus.map((item) => [item.id, { ...item, children: [] as any[] }]));
-    const roots: Array<Menu & { children: any[] }> = [];
+  async findTree(query: QueryMenuDto) {
+    const menus = await this.menusRepository.find({
+      where: this.buildWhere(query),
+      order: { sort: 'ASC', createdAt: 'ASC' },
+    });
 
-    for (const menu of map.values()) {
-      if (menu.parentId && map.has(menu.parentId)) {
-        map.get(menu.parentId)?.children.push(menu);
-      } else {
-        roots.push(menu);
-      }
-    }
-
-    return roots;
+    return this.buildTree(menus);
   }
 
   findOne(id: string) {
@@ -73,12 +43,14 @@ export class MenusService {
 
   async create(dto: CreateMenuDto) {
     await this.ensureCodeAvailable(dto.code);
-    await this.ensureParentExists(dto.parentId);
+    await this.ensureProductExists(dto.productId);
+    await this.ensureParentExists(dto.parentId, undefined, dto.productId);
 
     const menu = await this.menusRepository.save(
       this.menusRepository.create({
         code: dto.code,
         name: dto.name,
+        productId: dto.productId ?? null,
         parentId: dto.parentId ?? null,
         type: dto.type,
         path: dto.path ?? null,
@@ -97,21 +69,25 @@ export class MenusService {
 
   async update(id: string, dto: UpdateMenuDto) {
     const menu = await this.findOneOrFail(id);
+    const nextProductId = dto.productId === undefined ? menu.productId : (dto.productId ?? null);
+    const nextParentId = dto.parentId === undefined ? menu.parentId : (dto.parentId ?? null);
 
     if (dto.code && dto.code !== menu.code) {
       await this.ensureCodeAvailable(dto.code, id);
     }
 
-    if (dto.parentId && dto.parentId === id) {
+    if (nextParentId && nextParentId === id) {
       throw new ConflictException('父级菜单不能是自己');
     }
 
-    await this.ensureParentExists(dto.parentId, id);
+    await this.ensureProductExists(nextProductId);
+    await this.ensureParentExists(nextParentId, id, nextProductId);
 
     return this.menusRepository.save({
       ...menu,
       ...dto,
-      parentId: dto.parentId === undefined ? menu.parentId : (dto.parentId ?? null),
+      productId: nextProductId,
+      parentId: nextParentId,
       path: dto.path === undefined ? menu.path : (dto.path ?? null),
       component: dto.component === undefined ? menu.component : (dto.component ?? null),
       permission: dto.permission === undefined ? menu.permission : (dto.permission ?? null),
@@ -130,6 +106,44 @@ export class MenusService {
     return { message: '删除成功' };
   }
 
+  private buildWhere(query: QueryMenuDto) {
+    const keyword = query.keyword?.trim();
+    const baseWhere = {
+      ...(query.productId ? { productId: query.productId } : {}),
+      ...(query.type ? { type: query.type } : {}),
+      ...(query.enabled == null ? {} : { enabled: query.enabled }),
+    };
+
+    if (!keyword) {
+      return Object.keys(baseWhere).length ? baseWhere : undefined;
+    }
+
+    return [
+      { ...baseWhere, code: Like(`%${keyword}%`) },
+      { ...baseWhere, name: Like(`%${keyword}%`) },
+      { ...baseWhere, permission: Like(`%${keyword}%`) },
+    ];
+  }
+
+  private buildTree(menus: Menu[]) {
+    const map = new Map<string, MenuTreeItem>();
+    const roots: MenuTreeItem[] = [];
+
+    for (const item of menus) {
+      map.set(item.id, { ...item, children: [] });
+    }
+
+    for (const menu of map.values()) {
+      if (menu.parentId && map.has(menu.parentId)) {
+        map.get(menu.parentId)?.children.push(menu);
+      } else {
+        roots.push(menu);
+      }
+    }
+
+    return roots;
+  }
+
   private async findOneOrFail(id: string) {
     const menu = await this.menusRepository.findOne({ where: { id } });
     if (!menu) {
@@ -145,7 +159,20 @@ export class MenusService {
     }
   }
 
-  private async ensureParentExists(parentId?: string | null, excludeId?: string) {
+  private async ensureProductExists(productId?: string | null) {
+    if (!productId) return;
+
+    const product = await this.productsRepository.findOne({ where: { id: productId } });
+    if (!product) {
+      throw new NotFoundException('所属产品不存在');
+    }
+  }
+
+  private async ensureParentExists(
+    parentId?: string | null,
+    excludeId?: string,
+    productId?: string | null,
+  ) {
     if (!parentId) return;
     if (excludeId && parentId === excludeId) {
       throw new ConflictException('父级菜单不能是自己');
@@ -153,6 +180,9 @@ export class MenusService {
     const parent = await this.menusRepository.findOne({ where: { id: parentId } });
     if (!parent) {
       throw new NotFoundException('父级菜单不存在');
+    }
+    if ((parent.productId ?? null) !== (productId ?? null)) {
+      throw new ConflictException('父级菜单必须属于同一产品');
     }
   }
 }
