@@ -11,7 +11,8 @@ export class UpdateMenuCodeUniqueScope1777465200000 implements MigrationInterfac
 
     const table = await queryRunner.getTable('menus');
     const existingUniqueIndex = table?.indices.find(
-      (index) => index.isUnique && index.columnNames.length === 1 && index.columnNames[0] === 'code',
+      (index) =>
+        index.isUnique && index.columnNames.length === 1 && index.columnNames[0] === 'code',
     );
 
     if (existingUniqueIndex) {
@@ -42,7 +43,9 @@ export class UpdateMenuCodeUniqueScope1777465200000 implements MigrationInterfac
     }
 
     const table = await queryRunner.getTable('menus');
-    const scopedUniqueIndex = table?.indices.find((index) => index.name === 'UQ_menus_product_code');
+    const scopedUniqueIndex = table?.indices.find(
+      (index) => index.name === 'UQ_menus_product_code',
+    );
 
     if (scopedUniqueIndex) {
       await queryRunner.dropIndex('menus', scopedUniqueIndex);
@@ -50,7 +53,8 @@ export class UpdateMenuCodeUniqueScope1777465200000 implements MigrationInterfac
 
     const nextTable = await queryRunner.getTable('menus');
     const hasCodeUniqueIndex = nextTable?.indices.some(
-      (index) => index.isUnique && index.columnNames.length === 1 && index.columnNames[0] === 'code',
+      (index) =>
+        index.isUnique && index.columnNames.length === 1 && index.columnNames[0] === 'code',
     );
 
     if (!hasCodeUniqueIndex) {

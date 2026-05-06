@@ -116,9 +116,7 @@ describe('MenusService', () => {
 
   it('allows same menu code under different products', async () => {
     productsRepository.findOne.mockResolvedValue({ id: 'product-b' });
-    menusRepository.findOne
-      .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce(null);
+    menusRepository.findOne.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
     menusRepository.save.mockImplementation(async (value) => ({ id: 'new-menu', ...value }));
 
     const result = await service.create({

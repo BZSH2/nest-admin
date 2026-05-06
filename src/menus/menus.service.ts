@@ -156,11 +156,7 @@ export class MenusService {
     return menu;
   }
 
-  private async ensureCodeAvailable(
-    code: string,
-    productId?: string | null,
-    excludeId?: string,
-  ) {
+  private async ensureCodeAvailable(code: string, productId?: string | null, excludeId?: string) {
     const existing = await this.menusRepository.findOne({
       where: {
         code,
