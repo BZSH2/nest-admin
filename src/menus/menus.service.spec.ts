@@ -83,6 +83,28 @@ describe('MenusService', () => {
     });
   });
 
+  it('returns menus through product-specific endpoints', async () => {
+    productsRepository.findOne.mockResolvedValue({ id: 'product-a' });
+    menusRepository.find.mockResolvedValue([]);
+
+    await service.findAllByProduct('product-a', { keyword: 'system' });
+    await service.findTreeByProduct('product-a', {});
+
+    expect(productsRepository.findOne).toHaveBeenCalledWith({ where: { id: 'product-a' } });
+    expect(menusRepository.find).toHaveBeenNthCalledWith(1, {
+      where: [
+        { productId: 'product-a', code: Like('%system%') },
+        { productId: 'product-a', name: Like('%system%') },
+        { productId: 'product-a', permission: Like('%system%') },
+      ],
+      order: { sort: 'ASC', createdAt: 'ASC' },
+    });
+    expect(menusRepository.find).toHaveBeenNthCalledWith(2, {
+      where: { productId: 'product-a' },
+      order: { sort: 'ASC', createdAt: 'ASC' },
+    });
+  });
+
   it('rejects creating menu under a parent from another product', async () => {
     productsRepository.findOne.mockResolvedValue({ id: 'target-product' });
     menusRepository.findOne

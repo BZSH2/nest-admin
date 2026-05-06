@@ -51,6 +51,26 @@ export class MenusController {
     return this.menusService.findTree(query);
   }
 
+  @Get('products/:productId')
+  @ApiModule('MenuModule')
+  @ApiOperation({ summary: '查询指定产品菜单树列表' })
+  @ApiOkResponse({ description: '获取成功', type: MenuListResponseDto })
+  @ApiResponse({ status: 403, description: '需要管理员权限' })
+  @ApiResponse({ status: 404, description: '所属产品不存在' })
+  findAllByProduct(@Param('productId') productId: string, @Query() query: QueryMenuDto) {
+    return this.menusService.findAllByProduct(productId, query);
+  }
+
+  @Get('products/:productId/tree')
+  @ApiModule('MenuModule')
+  @ApiOperation({ summary: '查询指定产品菜单树' })
+  @ApiOkResponse({ description: '获取成功', type: MenuTreeResponseDto })
+  @ApiResponse({ status: 403, description: '需要管理员权限' })
+  @ApiResponse({ status: 404, description: '所属产品不存在' })
+  findTreeByProduct(@Param('productId') productId: string, @Query() query: QueryMenuDto) {
+    return this.menusService.findTreeByProduct(productId, query);
+  }
+
   @Get(':id')
   @ApiModule('MenuModule')
   @ApiOperation({ summary: '获取菜单详情' })

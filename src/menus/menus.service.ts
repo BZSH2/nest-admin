@@ -28,6 +28,11 @@ export class MenusService {
     return { items, total: menus.length, page: 1, pageSize: menus.length };
   }
 
+  async findAllByProduct(productId: string, query: QueryMenuDto) {
+    await this.ensureProductExists(productId);
+    return this.findAll({ ...query, productId });
+  }
+
   async findTree(query: QueryMenuDto) {
     const menus = await this.menusRepository.find({
       where: this.buildWhere(query),
@@ -35,6 +40,11 @@ export class MenusService {
     });
 
     return this.buildTree(menus);
+  }
+
+  async findTreeByProduct(productId: string, query: QueryMenuDto) {
+    await this.ensureProductExists(productId);
+    return this.findTree({ ...query, productId });
   }
 
   findOne(id: string) {
