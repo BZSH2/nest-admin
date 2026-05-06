@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
@@ -12,12 +13,13 @@ import { Product } from '../../products/entities/product.entity';
 
 export type MenuType = 'directory' | 'menu' | 'button';
 
+@Index('UQ_menus_product_code', ['productId', 'code'], { unique: true })
 @Entity('menus')
 export class Menu {
   @PrimaryGeneratedColumn('uuid', { comment: '菜单ID' })
   id: string;
 
-  @Column({ unique: true, length: 50, comment: '菜单编码' })
+  @Column({ length: 50, comment: '菜单编码（同一产品内唯一）' })
   code: string;
 
   @Column({ length: 50, comment: '菜单名称' })

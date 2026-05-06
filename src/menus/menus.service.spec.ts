@@ -1,7 +1,7 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Like } from 'typeorm';
+import { IsNull, Like } from 'typeorm';
 import { Product } from '../products/entities/product.entity';
 import { Menu } from './entities/menu.entity';
 import { MenusService } from './menus.service';
@@ -112,6 +112,63 @@ describe('MenusService', () => {
         type: 'menu',
       }),
     ).rejects.toThrow(NotFoundException);
+  });
+
+  it('allows same menu code under different products', async () => {
+    productsRepository.findOne.mockResolvedValue({ id: 'product-b' });
+    menusRepository.findOne
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(null);
+    menusRepository.save.mockImplementation(async (value) => ({ id: 'new-menu', ...value }));
+
+    const result = await service.create({
+      code: 'workspace',
+      name: '工作台',
+      productId: 'product-b',
+      type: 'menu',
+    });
+
+    expect(menusRepository.findOne).toHaveBeenNthCalledWith(1, {
+      where: { code: 'workspace', productId: 'product-b' },
+      withDeleted: true,
+    });
+    expect(result).toMatchObject({
+      id: 'new-menu',
+      code: 'workspace',
+      productId: 'product-b',
+    });
+  });
+
+  it('rejects duplicate menu code within the same product', async () => {
+    menusRepository.findOne.mockResolvedValue(
+      createMenu({ id: 'existing-menu', code: 'workspace', productId: 'product-a' }),
+    );
+
+    await expect(
+      service.create({
+        code: 'workspace',
+        name: '工作台',
+        productId: 'product-a',
+        type: 'menu',
+      }),
+    ).rejects.toThrow(new ConflictException('当前产品下菜单编码已存在'));
+  });
+
+  it('checks global menus with IsNull product scope', async () => {
+    menusRepository.findOne.mockResolvedValue(createMenu({ id: 'global-menu', productId: null }));
+
+    await expect(
+      service.create({
+        code: 'system_menu',
+        name: '菜单管理',
+        type: 'menu',
+      }),
+    ).rejects.toThrow(new ConflictException('当前产品下菜单编码已存在'));
+
+    expect(menusRepository.findOne).toHaveBeenNthCalledWith(1, {
+      where: { code: 'system_menu', productId: IsNull() },
+      withDeleted: true,
+    });
   });
 });
 

@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { IsNull, Like, Repository } from 'typeorm';
 import { Product } from '../products/entities/product.entity';
 import { CreateMenuDto } from './dto/create-menu.dto';
 import { QueryMenuDto } from './dto/query-menu.dto';
@@ -42,9 +42,11 @@ export class MenusService {
   }
 
   async create(dto: CreateMenuDto) {
-    await this.ensureCodeAvailable(dto.code);
-    await this.ensureProductExists(dto.productId);
-    await this.ensureParentExists(dto.parentId, undefined, dto.productId);
+    const productId = dto.productId ?? null;
+
+    await this.ensureCodeAvailable(dto.code, productId);
+    await this.ensureProductExists(productId);
+    await this.ensureParentExists(dto.parentId, undefined, productId);
 
     const menu = await this.menusRepository.save(
       this.menusRepository.create({
@@ -73,7 +75,9 @@ export class MenusService {
     const nextParentId = dto.parentId === undefined ? menu.parentId : (dto.parentId ?? null);
 
     if (dto.code && dto.code !== menu.code) {
-      await this.ensureCodeAvailable(dto.code, id);
+      await this.ensureCodeAvailable(dto.code, nextProductId, id);
+    } else if (nextProductId !== menu.productId) {
+      await this.ensureCodeAvailable(menu.code, nextProductId, id);
     }
 
     if (nextParentId && nextParentId === id) {
@@ -152,10 +156,20 @@ export class MenusService {
     return menu;
   }
 
-  private async ensureCodeAvailable(code: string, excludeId?: string) {
-    const existing = await this.menusRepository.findOne({ where: { code }, withDeleted: true });
+  private async ensureCodeAvailable(
+    code: string,
+    productId?: string | null,
+    excludeId?: string,
+  ) {
+    const existing = await this.menusRepository.findOne({
+      where: {
+        code,
+        productId: productId == null ? IsNull() : productId,
+      },
+      withDeleted: true,
+    });
     if (existing && existing.id !== excludeId) {
-      throw new ConflictException('菜单编码已存在');
+      throw new ConflictException('当前产品下菜单编码已存在');
     }
   }
 

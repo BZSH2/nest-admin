@@ -67,7 +67,7 @@ export class MenusController {
   @ApiOkResponse({ description: '创建成功', type: MenuDetailResponseDto })
   @ApiResponse({ status: 403, description: '需要管理员权限' })
   @ApiResponse({ status: 404, description: '所属产品或父级菜单不存在' })
-  @ApiResponse({ status: 409, description: '菜单编码已存在或父级菜单不合法' })
+  @ApiResponse({ status: 409, description: '当前产品下菜单编码已存在或父级菜单不合法' })
   create(@Body() dto: CreateMenuDto) {
     return this.menusService.create(dto);
   }
@@ -78,7 +78,7 @@ export class MenusController {
   @ApiOkResponse({ description: '更新成功', type: MenuDetailResponseDto })
   @ApiResponse({ status: 403, description: '需要管理员权限' })
   @ApiResponse({ status: 404, description: '菜单、所属产品或父级菜单不存在' })
-  @ApiResponse({ status: 409, description: '菜单编码已存在或父级菜单不合法' })
+  @ApiResponse({ status: 409, description: '当前产品下菜单编码已存在或父级菜单不合法' })
   update(@Param('id') id: string, @Body() dto: UpdateMenuDto) {
     return this.menusService.update(id, dto);
   }
