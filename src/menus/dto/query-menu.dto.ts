@@ -11,7 +11,11 @@ export class QueryMenuDto {
   @Min(1)
   page?: number = 1;
 
-  @ApiProperty({ required: false, example: 10, description: '预留分页参数，当前菜单接口返回完整树' })
+  @ApiProperty({
+    required: false,
+    example: 10,
+    description: '预留分页参数，当前菜单接口返回完整树',
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
